@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "teams": [
+    {
+      "id": "t-cd",
+      "sport": "football",
+      "name": "城东 FC",
+      "region": "城东街道",
+      "captain": "王志强",
+      "intro": "由本地工厂工友组建，主打高位逼抢和长传冲吊，外号「钢铁意志」。",
+      "players": [
+        { "id": "p-cd-1", "name": "王志强", "number": "5", "position": "后腰", "profession": "汽修工", "hometown": "本县城东村", "experience": "踢了 10 年野球，2023 年带队拿到县级亚军。", "skills": "拼抢凶悍，长传精准。" },
+        { "id": "p-cd-2", "name": "李建国", "number": "9", "position": "中锋", "profession": "外卖骑手", "hometown": "邻县郭村", "experience": "送外卖路上颠球练脚下。", "skills": "头球抢点，禁区门前嗅觉灵敏。" },
+        { "id": "p-cd-3", "name": "张航", "number": "11", "position": "边锋", "profession": "高中体育老师", "hometown": "本县城关", "experience": "县体校出身，给学生当过教练。", "skills": "速度快，左右脚都能传中。" }
+      ]
+    },
+    {
+      "id": "t-cx",
+      "sport": "football",
+      "name": "城西雄鹰",
+      "region": "城西工业园",
+      "captain": "刘鹏",
+      "intro": "工业园厂队，以体能著称，喜欢踢长传反击。",
+      "players": [
+        { "id": "p-cx-1", "name": "刘鹏", "number": "10", "position": "前腰", "profession": "电焊工", "hometown": "本县城西", "experience": "县际联赛常客，曾入选业余联队。", "skills": "组织串联，定位球主罚。" },
+        { "id": "p-cx-2", "name": "陈志远", "number": "1", "position": "门将", "profession": "保安队长", "hometown": "邻县", "experience": "服役期间在部队踢过球。", "skills": "扑救反应快，出击果断。" }
+      ]
+    },
+    {
+      "id": "t-nz",
+      "sport": "basketball",
+      "name": "南镇飞虎",
+      "region": "南镇",
+      "captain": "周凯",
+      "intro": "镇里组建的青年队，平均年龄 24 岁，主打快攻。",
+      "players": [
+        { "id": "p-nz-1", "name": "周凯", "number": "23", "position": "控卫", "profession": "网店店主", "hometown": "本县南镇", "experience": "大学校队主力，毕业回乡。", "skills": "突破犀利，三分稳定。" },
+        { "id": "p-nz-2", "name": "赵磊", "number": "32", "position": "中锋", "profession": "建材老板", "hometown": "本县南镇", "experience": "身高 198，本县体校出身。", "skills": "篮下统治力强。" }
+      ]
+    },
+    {
+      "id": "t-bj",
+      "sport": "basketball",
+      "name": "北街老炮",
+      "region": "北街社区",
+      "captain": "马伟",
+      "intro": "由 30+ 老球友组成，经验丰富但体能吃紧。",
+      "players": [
+        { "id": "p-bj-1", "name": "马伟", "number": "7", "position": "控卫", "profession": "出租车司机", "hometown": "本县城关", "experience": "打了 15 年野球，街头联赛 MVP。", "skills": "节奏好，关键球大心脏。" },
+        { "id": "p-bj-2", "name": "孙建", "number": "21", "position": "小前", "profession": "厨师", "hometown": "本县北街", "experience": "饭店每周组织赛事支持者。", "skills": "三分手感稳。" }
+      ]
+    }
+  ],
+  "matches": [
+    {
+      "id": "m-001",
+      "sport": "football",
+      "homeId": "t-cd",
+      "awayId": "t-cx",
+      "datetime": "2026-05-19T19:30",
+      "venue": "县体育中心 1 号场",
+      "round": "小组赛第 1 轮",
+      "status": "finished",
+      "homeScore": 2,
+      "awayScore": 1,
+      "mvp": "张航",
+      "notes": "下半场城东上替补打提速，最后 10 分钟绝杀。",
+      "events": [
+        { "id": "e-1", "type": "goal", "team": "home", "player": "李建国", "minute": "22", "note": "头球破门" },
+        { "id": "e-2", "type": "goal", "team": "away", "player": "刘鹏", "minute": "41", "note": "任意球" },
+        { "id": "e-3", "type": "yellow", "team": "away", "player": "陈志远", "minute": "55", "note": "" },
+        { "id": "e-4", "type": "goal", "team": "home", "player": "张航", "minute": "88", "note": "反击单刀" }
+      ]
+    },
+    {
+      "id": "m-002",
+      "sport": "basketball",
+      "homeId": "t-nz",
+      "awayId": "t-bj",
+      "datetime": "2026-05-20T20:00",
+      "venue": "县文体广场",
+      "round": "小组赛第 1 轮",
+      "status": "scheduled",
+      "homeScore": 0,
+      "awayScore": 0,
+      "mvp": "",
+      "notes": "",
+      "events": []
+    },
+    {
+      "id": "m-003",
+      "sport": "football",
+      "homeId": "t-cx",
+      "awayId": "t-cd",
+      "datetime": "2026-05-22T19:30",
+      "venue": "县体育中心 2 号场",
+      "round": "小组赛第 2 轮",
+      "status": "scheduled",
+      "homeScore": 0,
+      "awayScore": 0,
+      "mvp": "",
+      "notes": "",
+      "events": []
+    }
+  ],
+  "analyses": [
+    {
+      "matchId": "m-002",
+      "home": { "stamina": 4, "core": 4, "chemistry": 4, "bench": 3, "venue": 4, "morale": 5 },
+      "away": { "stamina": 2, "core": 5, "chemistry": 5, "bench": 2, "venue": 3, "morale": 4 },
+      "keyPoints": "老炮经验对快攻，第三节体能关键。"
+    }
+  ]
+}
