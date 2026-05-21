@@ -180,6 +180,8 @@ input, select, textarea { font-family: inherit; }
   letter-spacing: -0.02em;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow: hidden;
+  vertical-align: middle;
 }
 .team-logo.logo-sm {
   width: 22px;
@@ -188,14 +190,36 @@ input, select, textarea { font-family: inherit; }
   border-width: 1.5px;
 }
 .team-logo.logo-lg {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   font-size: 14px;
   border-width: 2.5px;
 }
 .team-logo.logo-banned {
   opacity: 0.5;
-  filter: grayscale(0.5);
+  filter: grayscale(0.7);
+}
+/* When the logo is an image: drop the colored circle, show full image */
+.team-logo.team-logo-img {
+  background: transparent !important;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  overflow: visible;
+}
+.team-logo.team-logo-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.team-logo.team-logo-img.logo-lg {
+  width: 60px;
+  height: 60px;
+}
+.team-logo.team-logo-img.logo-sm {
+  width: 26px;
+  height: 26px;
 }
 .team-with-logo {
   display: inline-flex;

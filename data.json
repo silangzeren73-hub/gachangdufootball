@@ -11,7 +11,8 @@
       "players": [],
       "shortName": "江达",
       "logoColor": "#dc2626",
-      "logoBg": "#fef2f2"
+      "logoBg": "#fef2f2",
+      "logoImage": "logos/t-jdx.png"
     },
     {
       "id": "t-krq",
@@ -204,7 +205,8 @@
       ],
       "shortName": "卡若",
       "logoColor": "#ea580c",
-      "logoBg": "#fff7ed"
+      "logoBg": "#fff7ed",
+      "logoImage": "logos/t-krq.png"
     },
     {
       "id": "t-szf",
@@ -216,7 +218,8 @@
       "players": [],
       "shortName": "政法",
       "logoColor": "#d97706",
-      "logoBg": "#fffbeb"
+      "logoBg": "#fffbeb",
+      "logoImage": "logos/t-szf.png"
     },
     {
       "id": "t-llx",
@@ -409,7 +412,8 @@
       ],
       "shortName": "洛隆",
       "logoColor": "#ca8a04",
-      "logoBg": "#fefce8"
+      "logoBg": "#fefce8",
+      "logoImage": "logos/t-llx.png"
     },
     {
       "id": "t-szz",
@@ -634,7 +638,8 @@
       ],
       "shortName": "芒康",
       "logoColor": "#0369a1",
-      "logoBg": "#eff6ff"
+      "logoBg": "#eff6ff",
+      "logoImage": "logos/t-mkx.png"
     },
     {
       "id": "t-sjy",
@@ -827,7 +832,8 @@
       ],
       "shortName": "教育",
       "logoColor": "#1d4ed8",
-      "logoBg": "#eff6ff"
+      "logoBg": "#eff6ff",
+      "logoImage": "logos/t-sjy.png"
     },
     {
       "id": "t-sqy",
@@ -1032,7 +1038,8 @@
       ],
       "shortName": "边坝",
       "logoColor": "#16a34a",
-      "logoBg": "#f0fdf4"
+      "logoBg": "#f0fdf4",
+      "logoImage": "logos/t-bbx.png"
     },
     {
       "id": "t-dqx",
@@ -1225,7 +1232,8 @@
       ],
       "shortName": "丁青",
       "logoColor": "#15803d",
-      "logoBg": "#f0fdf4"
+      "logoBg": "#f0fdf4",
+      "logoImage": "logos/t-dqx.png"
     },
     {
       "id": "t-gjx",
@@ -1237,7 +1245,8 @@
       "players": [],
       "shortName": "贡觉",
       "logoColor": "#059669",
-      "logoBg": "#ecfdf5"
+      "logoBg": "#ecfdf5",
+      "logoImage": "logos/t-gjx.png"
     },
     {
       "id": "t-bsx",
@@ -1249,7 +1258,8 @@
       "players": [],
       "shortName": "八宿",
       "logoColor": "#0d9488",
-      "logoBg": "#f0fdfa"
+      "logoBg": "#f0fdfa",
+      "logoImage": "logos/t-bsx.png"
     },
     {
       "id": "t-syj",
@@ -1482,7 +1492,8 @@
       ],
       "shortName": "应急",
       "logoColor": "#7c3aed",
-      "logoBg": "#f5f3ff"
+      "logoBg": "#f5f3ff",
+      "logoImage": "logos/t-syj.png"
     },
     {
       "id": "t-lwq",
@@ -1701,7 +1712,8 @@
       "players": [],
       "shortName": "察雅",
       "logoColor": "#db2777",
-      "logoBg": "#fdf2f8"
+      "logoBg": "#fdf2f8",
+      "logoImage": "logos/t-cyx.png"
     },
     {
       "id": "t-tba",
@@ -2201,6 +2213,6 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779371673,
-  "updatedAt": "2026-05-22 第一轮结果 + 类乌齐禁赛 + 队伍 logo"
+  "dataVersion": 1779372744,
+  "updatedAt": "已接入 12 支队的真实队标"
 }

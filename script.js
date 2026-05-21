@@ -108,11 +108,20 @@ function teamName(id) { const t = getTeam(id); return t ? t.name : '（未指定
 function teamLogo(teamOrId, size) {
   const t = typeof teamOrId === 'string' ? getTeam(teamOrId) : teamOrId;
   const sizeClass = size === 'sm' ? ' logo-sm' : size === 'lg' ? ' logo-lg' : '';
+  const bannedClass = (t && t.banned) ? ' logo-banned' : '';
+  // 1) If team has an image logo, render as <img>
+  if (t && t.logoImage) {
+    return el('span', {
+      class: 'team-logo team-logo-img' + sizeClass + bannedClass,
+      title: t.name,
+    }, el('img', { src: t.logoImage, alt: t.name, loading: 'lazy' }));
+  }
+  // 2) Fallback: colored circle with short name
   const short = (t && t.shortName) || (t && t.name ? t.name.slice(0, 2) : '?');
   const color = (t && t.logoColor) || '#64748b';
   const bg = (t && t.logoBg) || '#f1f5f9';
   return el('span', {
-    class: 'team-logo' + sizeClass + (t && t.banned ? ' logo-banned' : ''),
+    class: 'team-logo' + sizeClass + bannedClass,
     style: `background:${bg};color:${color};border-color:${color};`,
     title: t ? t.name : '',
   }, short);
