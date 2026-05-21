@@ -58,6 +58,8 @@ function normalizeState(s) {
   s.teams = Array.isArray(s.teams) ? s.teams : [];
   s.matches = Array.isArray(s.matches) ? s.matches : [];
   s.analyses = Array.isArray(s.analyses) ? s.analyses : [];
+  s.dataVersion = s.dataVersion || 0;
+  s.updatedAt = s.updatedAt || '';
   return s;
 }
 function save() {
@@ -1524,21 +1526,28 @@ function boot() {
   bindEvents();
   const initial = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
   activateTab(initial);
-  // Pre-render others so data tab stats etc. are fresh later
   renderAll();
-  // Auto-load data.json on first visit (when local storage is empty)
-  if (state.teams.length === 0 && state.matches.length === 0) {
-    fetch('data.json')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!data) return;
+  // Always fetch remote data.json and compare versions.
+  // If remote has a newer dataVersion (or local has no data), replace state.
+  fetch('data.json?ts=' + Date.now())
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data) return;
+      const remoteVersion = data.dataVersion || 0;
+      const localVersion = state.dataVersion || 0;
+      const noLocalData = state.teams.length === 0 && state.matches.length === 0;
+      if (noLocalData || remoteVersion > localVersion) {
         state = normalizeState(data);
         save();
         renderAll();
-        toast('已自动载入赛程数据');
-      })
-      .catch(() => {});
-  }
+        if (!noLocalData && data.updatedAt) {
+          toast('已同步最新数据：' + data.updatedAt);
+        } else if (noLocalData) {
+          toast('已载入赛程数据');
+        }
+      }
+    })
+    .catch(() => {});
 }
 
 if (document.readyState === 'loading') {
