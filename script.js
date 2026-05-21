@@ -103,6 +103,27 @@ function toast(msg) {
 function getTeam(id) { return state.teams.find(t => t.id === id); }
 function getMatch(id) { return state.matches.find(m => m.id === id); }
 function teamName(id) { const t = getTeam(id); return t ? t.name : '（未指定）'; }
+function teamLogo(teamOrId, size) {
+  const t = typeof teamOrId === 'string' ? getTeam(teamOrId) : teamOrId;
+  const sizeClass = size === 'sm' ? ' logo-sm' : size === 'lg' ? ' logo-lg' : '';
+  const short = (t && t.shortName) || (t && t.name ? t.name.slice(0, 2) : '?');
+  const color = (t && t.logoColor) || '#64748b';
+  const bg = (t && t.logoBg) || '#f1f5f9';
+  return el('span', {
+    class: 'team-logo' + sizeClass + (t && t.banned ? ' logo-banned' : ''),
+    style: `background:${bg};color:${color};border-color:${color};`,
+    title: t ? t.name : '',
+  }, short);
+}
+function teamLine(teamOrId, opts) {
+  opts = opts || {};
+  const t = typeof teamOrId === 'string' ? getTeam(teamOrId) : teamOrId;
+  if (!t) return el('span', { class: 'team-with-logo muted' }, '（未指定）');
+  return el('span', { class: 'team-with-logo' },
+    teamLogo(t, opts.size),
+    el('span', { class: 'team-with-logo-name' }, opts.short ? (t.shortName || t.name) : t.name),
+  );
+}
 function fmtDT(dt) {
   if (!dt) return '';
   const d = new Date(dt);
@@ -214,13 +235,19 @@ function matchCard(m) {
     ),
     el('div', { class: 'match-teams' },
       el('div', { class: 'match-team' },
-        home ? home.name : '主队',
-        home && home.region ? el('span', { class: 'region' }, home.region) : null,
+        home ? teamLogo(home, 'lg') : null,
+        el('div', { class: 'match-team-text' },
+          el('div', { class: 'match-team-name' }, home ? home.name : '主队'),
+          home && home.region ? el('span', { class: 'region' }, home.region) : null,
+        ),
       ),
       scoreNode,
       el('div', { class: 'match-team' },
-        away ? away.name : '客队',
-        away && away.region ? el('span', { class: 'region' }, away.region) : null,
+        away ? teamLogo(away, 'lg') : null,
+        el('div', { class: 'match-team-text' },
+          el('div', { class: 'match-team-name' }, away ? away.name : '客队'),
+          away && away.region ? el('span', { class: 'region' }, away.region) : null,
+        ),
       ),
     ),
     (m.status === 'forfeit' && m.notes) ? el('div', { class: 'forfeit-note' }, '⚠ ' + m.notes) : null,
@@ -542,12 +569,15 @@ renderers.teams = function() {
     const sport = SPORTS[t.sport] || SPORTS.football;
     const card = el('div', { class: 'card' + (t.banned ? ' banned-card' : '') },
       el('div', { class: 'match-meta' },
-        el('div', null,
-          el('span', { class: 'tag ' + (t.sport || 'football') }, `${sport.emoji} ${sport.label}`),
-          ' ',
-          el('strong', null, t.name),
-          t.region ? el('span', { class: 'muted small' }, ' · ' + t.region) : null,
-          t.banned ? el('span', { class: 'tag banned' }, '⛔ ' + (t.banReason || '已禁赛')) : null,
+        el('div', { class: 'team-card-head' },
+          teamLogo(t, 'lg'),
+          el('div', null,
+            el('span', { class: 'tag ' + (t.sport || 'football') }, `${sport.emoji} ${sport.label}`),
+            ' ',
+            el('strong', null, t.name),
+            t.region ? el('span', { class: 'muted small' }, ' · ' + t.region) : null,
+            t.banned ? el('span', { class: 'tag banned' }, '⛔ ' + (t.banReason || '已禁赛')) : null,
+          ),
         ),
         el('div', { class: 'btn-row' },
           el('button', { class: 'btn sm ghost', onClick: () => openTeamForm(t.id) }, '编辑'),
@@ -892,7 +922,7 @@ function buildStandings(sport, teams) {
     el('tbody', null,
       ...rows.map((r, i) => el('tr', null,
         el('td', null, el('span', { class: 'rank-badge top' + (i + 1) }, String(i + 1))),
-        el('td', { class: 'team-name' }, r.team.name),
+        el('td', { class: 'team-name' }, teamLine(r.team)),
         el('td', null, String(r.games)),
         el('td', null, String(r.wins)),
         isBasket ? null : el('td', null, String(r.draws)),
@@ -957,7 +987,7 @@ renderers.topscorers = function() {
         ...list.map((r, i) => el('tr', null,
           el('td', null, el('span', { class: 'rank-badge top' + (i + 1) }, String(i + 1))),
           el('td', { class: 'team-name' }, r.name),
-          el('td', null, teamName(r.teamId)),
+          el('td', null, teamLine(r.teamId, { short: true })),
           el('td', null, el('strong', { style: 'color:var(--primary);' }, String(r.count))),
         )),
       ),
@@ -1000,7 +1030,7 @@ renderers.topscorers = function() {
         ...combList.map((r, i) => el('tr', null,
           el('td', null, el('span', { class: 'rank-badge top' + (i + 1) }, String(i + 1))),
           el('td', { class: 'team-name' }, r.name),
-          el('td', null, teamName(r.teamId)),
+          el('td', null, teamLine(r.teamId, { short: true })),
           el('td', null, String(r.goals)),
           el('td', null, String(r.assists)),
           el('td', null, el('strong', { style: 'color:var(--primary);' }, String(r.total))),

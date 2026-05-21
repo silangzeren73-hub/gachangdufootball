@@ -164,6 +164,57 @@ input, select, textarea { font-family: inherit; }
   color: #b91c1c;
 }
 
+/* ===== Team Logos ===== */
+.team-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.team-logo.logo-sm {
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
+  border-width: 1.5px;
+}
+.team-logo.logo-lg {
+  width: 44px;
+  height: 44px;
+  font-size: 14px;
+  border-width: 2.5px;
+}
+.team-logo.logo-banned {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+.team-with-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+.team-with-logo-name {
+  line-height: 1.2;
+}
+.team-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.team-card-head .team-logo {
+  margin-right: 2px;
+}
+
 /* ===== Buttons ===== */
 .btn {
   display: inline-flex;
@@ -277,6 +328,18 @@ input, select, textarea { font-family: inherit; }
   font-size: 15px;
   font-weight: 600;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.match-team-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.match-team-name {
+  line-height: 1.25;
 }
 .match-team .region {
   display: block;

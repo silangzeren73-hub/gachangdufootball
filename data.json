@@ -8,7 +8,10 @@
       "region": "江达县",
       "captain": "",
       "intro": "A组",
-      "players": []
+      "players": [],
+      "shortName": "江达",
+      "logoColor": "#dc2626",
+      "logoBg": "#fef2f2"
     },
     {
       "id": "t-krq",
@@ -198,7 +201,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "卡若",
+      "logoColor": "#ea580c",
+      "logoBg": "#fff7ed"
     },
     {
       "id": "t-szf",
@@ -207,7 +213,10 @@
       "region": "市政法系统",
       "captain": "",
       "intro": "A组",
-      "players": []
+      "players": [],
+      "shortName": "政法",
+      "logoColor": "#d97706",
+      "logoBg": "#fffbeb"
     },
     {
       "id": "t-llx",
@@ -397,7 +406,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "洛隆",
+      "logoColor": "#ca8a04",
+      "logoBg": "#fefce8"
     },
     {
       "id": "t-szz",
@@ -406,7 +418,10 @@
       "region": "市直单位",
       "captain": "",
       "intro": "B组",
-      "players": []
+      "players": [],
+      "shortName": "市直",
+      "logoColor": "#0284c7",
+      "logoBg": "#f0f9ff"
     },
     {
       "id": "t-mkx",
@@ -616,7 +631,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "芒康",
+      "logoColor": "#0369a1",
+      "logoBg": "#eff6ff"
     },
     {
       "id": "t-sjy",
@@ -806,7 +824,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "教育",
+      "logoColor": "#1d4ed8",
+      "logoBg": "#eff6ff"
     },
     {
       "id": "t-sqy",
@@ -815,7 +836,10 @@
       "region": "市企业系统",
       "captain": "",
       "intro": "B组",
-      "players": []
+      "players": [],
+      "shortName": "企业",
+      "logoColor": "#4338ca",
+      "logoBg": "#eef2ff"
     },
     {
       "id": "t-bbx",
@@ -1005,7 +1029,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "边坝",
+      "logoColor": "#16a34a",
+      "logoBg": "#f0fdf4"
     },
     {
       "id": "t-dqx",
@@ -1195,7 +1222,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "丁青",
+      "logoColor": "#15803d",
+      "logoBg": "#f0fdf4"
     },
     {
       "id": "t-gjx",
@@ -1204,7 +1234,10 @@
       "region": "贡觉县",
       "captain": "",
       "intro": "C组",
-      "players": []
+      "players": [],
+      "shortName": "贡觉",
+      "logoColor": "#059669",
+      "logoBg": "#ecfdf5"
     },
     {
       "id": "t-bsx",
@@ -1213,7 +1246,10 @@
       "region": "八宿县",
       "captain": "",
       "intro": "C组",
-      "players": []
+      "players": [],
+      "shortName": "八宿",
+      "logoColor": "#0d9488",
+      "logoBg": "#f0fdfa"
     },
     {
       "id": "t-syj",
@@ -1443,7 +1479,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "应急",
+      "logoColor": "#7c3aed",
+      "logoBg": "#f5f3ff"
     },
     {
       "id": "t-lwq",
@@ -1454,7 +1493,10 @@
       "intro": "D组 · 已禁赛",
       "players": [],
       "banned": true,
-      "banReason": "已禁赛"
+      "banReason": "已禁赛",
+      "shortName": "类乌",
+      "logoColor": "#6b7280",
+      "logoBg": "#f9fafb"
     },
     {
       "id": "t-zgx",
@@ -1644,7 +1686,10 @@
           "experience": "",
           "skills": ""
         }
-      ]
+      ],
+      "shortName": "左贡",
+      "logoColor": "#a21caf",
+      "logoBg": "#fdf4ff"
     },
     {
       "id": "t-cyx",
@@ -1653,7 +1698,10 @@
       "region": "察雅县",
       "captain": "",
       "intro": "D组",
-      "players": []
+      "players": [],
+      "shortName": "察雅",
+      "logoColor": "#db2777",
+      "logoBg": "#fdf2f8"
     },
     {
       "id": "t-tba",
@@ -1662,7 +1710,10 @@
       "region": "",
       "captain": "",
       "intro": "",
-      "players": []
+      "players": [],
+      "shortName": "待定",
+      "logoColor": "#94a3b8",
+      "logoBg": "#f1f5f9"
     }
   ],
   "matches": [
