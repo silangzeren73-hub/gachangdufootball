@@ -117,7 +117,13 @@ function isSameDay(dt, date) {
     d.getDate() === date.getDate();
 }
 function sortMatches(arr) {
-  return arr.slice().sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+  return arr.slice().sort((a, b) => {
+    const dt = new Date(a.datetime) - new Date(b.datetime);
+    if (dt !== 0) return dt;
+    // same time: actual scheduled/finished games before forfeit virtual ones
+    const order = { live: 0, scheduled: 1, finished: 2, forfeit: 3 };
+    return (order[a.status] ?? 9) - (order[b.status] ?? 9);
+  });
 }
 function copyText(text) {
   if (navigator.clipboard && window.isSecureContext) {
