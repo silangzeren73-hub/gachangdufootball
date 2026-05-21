@@ -596,10 +596,19 @@ renderers.teams = function() {
       ),
       t.captain ? el('div', { class: 'small muted' }, '队长：' + t.captain) : null,
       t.intro ? el('div', { class: 'small mt-8' }, t.intro) : null,
+      (() => {
+        const ps = (t.players || []).filter(p => p.age);
+        if (ps.length === 0) return null;
+        const ages = ps.map(p => p.age);
+        const avg = (ages.reduce((a,b)=>a+b,0)/ages.length).toFixed(1);
+        return el('div', { class: 'team-age-stats small muted' },
+          `👥 共 ${t.players.length} 人 · 平均 ${avg} 岁 · 最年轻 ${Math.min(...ages)} 岁 · 最年长 ${Math.max(...ages)} 岁`
+        );
+      })(),
       el('div', { class: 'player-list' },
         ...(t.players || []).map(p => el('span', { class: 'player-tag', onClick: () => openPlayerForm(p.id, t.id) },
           p.number ? el('span', { class: 'num' }, '#' + p.number) : null,
-          p.name + (p.position ? ' · ' + p.position : '')
+          p.name + (p.position ? ' · ' + p.position : '') + (p.age ? ` · ${p.age}岁` : '')
         )),
         el('span', { class: 'player-tag', style: 'color:var(--primary);font-weight:600;', onClick: () => openPlayerForm(null, t.id) }, '＋ 球员'),
       ),
