@@ -187,10 +187,13 @@ function matchCard(m) {
   const sport = SPORTS[m.sport] || SPORTS.football;
   const home = getTeam(m.homeId);
   const away = getTeam(m.awayId);
-  const statusLabel = m.status === 'live' ? '进行中' : m.status === 'finished' ? '已结束' : '未开始';
+  const statusLabel = m.status === 'live' ? '进行中'
+    : m.status === 'finished' ? '已结束'
+    : m.status === 'forfeit' ? '判负/弃权'
+    : '未开始';
   const scoreNode = m.status === 'scheduled'
     ? el('div', { class: 'match-score vs' }, 'VS')
-    : el('div', { class: 'match-score' }, `${m.homeScore ?? 0} : ${m.awayScore ?? 0}`);
+    : el('div', { class: 'match-score' + (m.status === 'forfeit' ? ' forfeit' : '') }, `${m.homeScore ?? 0} : ${m.awayScore ?? 0}`);
 
   return el('div', { class: 'match-card' },
     el('div', { class: 'match-meta' },
@@ -214,6 +217,7 @@ function matchCard(m) {
         away && away.region ? el('span', { class: 'region' }, away.region) : null,
       ),
     ),
+    (m.status === 'forfeit' && m.notes) ? el('div', { class: 'forfeit-note' }, '⚠ ' + m.notes) : null,
     el('div', { class: 'match-actions' },
       el('button', { class: 'btn sm', onClick: () => openScoreEntry(m.id) }, '比分'),
       el('button', { class: 'btn sm ghost', onClick: () => openMatchForm(m.id) }, '编辑'),
@@ -530,13 +534,14 @@ renderers.teams = function() {
 
   state.teams.filter(t => t.id !== 't-tba').forEach(t => {
     const sport = SPORTS[t.sport] || SPORTS.football;
-    const card = el('div', { class: 'card' },
+    const card = el('div', { class: 'card' + (t.banned ? ' banned-card' : '') },
       el('div', { class: 'match-meta' },
         el('div', null,
           el('span', { class: 'tag ' + (t.sport || 'football') }, `${sport.emoji} ${sport.label}`),
           ' ',
           el('strong', null, t.name),
           t.region ? el('span', { class: 'muted small' }, ' · ' + t.region) : null,
+          t.banned ? el('span', { class: 'tag banned' }, '⛔ ' + (t.banReason || '已禁赛')) : null,
         ),
         el('div', { class: 'btn-row' },
           el('button', { class: 'btn sm ghost', onClick: () => openTeamForm(t.id) }, '编辑'),
@@ -846,7 +851,7 @@ function buildStandings(sport, teams) {
   const byId = {};
   rows.forEach(r => (byId[r.team.id] = r));
 
-  state.matches.filter(m => m.status === 'finished' && m.sport === sport).forEach(m => {
+  state.matches.filter(m => (m.status === 'finished' || m.status === 'forfeit') && m.sport === sport).forEach(m => {
     const h = byId[m.homeId], a = byId[m.awayId];
     if (!h || !a) return;
     const hs = m.homeScore || 0, as = m.awayScore || 0;

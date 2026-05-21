@@ -1451,8 +1451,10 @@
       "name": "类乌齐县足球队",
       "region": "类乌齐县",
       "captain": "",
-      "intro": "D组",
-      "players": []
+      "intro": "D组 · 已禁赛",
+      "players": [],
+      "banned": true,
+      "banReason": "已禁赛"
     },
     {
       "id": "t-zgx",
@@ -1762,11 +1764,11 @@
       "datetime": "2026-05-22T13:30",
       "venue": "津昌体育场",
       "round": "第二轮 · D组",
-      "status": "scheduled",
-      "homeScore": 0,
+      "status": "forfeit",
+      "homeScore": 3,
       "awayScore": 0,
       "mvp": "",
-      "notes": "",
+      "notes": "类乌齐县被禁赛，判左贡县 3:0 获胜",
       "events": []
     },
     {
@@ -1912,11 +1914,11 @@
       "datetime": "2026-05-24T13:30",
       "venue": "津昌体育场",
       "round": "第四轮 · D组",
-      "status": "scheduled",
-      "homeScore": 0,
+      "status": "forfeit",
+      "homeScore": 3,
       "awayScore": 0,
       "mvp": "",
-      "notes": "",
+      "notes": "类乌齐县被禁赛，判察雅县 3:0 获胜",
       "events": []
     },
     {
