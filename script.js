@@ -136,7 +136,7 @@ function copyText(text) {
 function confirmDel(msg) { return window.confirm(msg || '确定删除？'); }
 
 /* ===== Tabs ===== */
-const TABS = ['today','schedule','teams','players','standings','insights','reports','shootlist','data'];
+const TABS = ['today','schedule','teams','players','standings','topscorers','insights','reports','shootlist','data'];
 const renderers = {};
 
 function activateTab(name) {
@@ -528,7 +528,7 @@ renderers.teams = function() {
     return;
   }
 
-  state.teams.forEach(t => {
+  state.teams.filter(t => t.id !== 't-tba').forEach(t => {
     const sport = SPORTS[t.sport] || SPORTS.football;
     const card = el('div', { class: 'card' },
       el('div', { class: 'match-meta' },
@@ -801,10 +801,33 @@ renderers.standings = function() {
   panel.appendChild(el('div', { class: 'section-head' }, el('h2', null, '积分榜')));
 
   ['football', 'basketball'].forEach(sport => {
-    const teams = state.teams.filter(t => (t.sport || 'football') === sport);
+    const teams = state.teams.filter(t => (t.sport || 'football') === sport && t.id !== 't-tba');
     if (teams.length === 0) return;
-    panel.appendChild(el('div', { class: 'section-sub' }, `${SPORTS[sport].emoji} ${SPORTS[sport].label}`));
-    panel.appendChild(buildStandings(sport, teams));
+    // Try grouping by intro field like "A组" / "B组"
+    const groupKeys = ['A', 'B', 'C', 'D'];
+    const grouped = {};
+    teams.forEach(t => {
+      const m = (t.intro || '').match(/([A-D])组/);
+      const g = m ? m[1] : '其他';
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push(t);
+    });
+    const hasGroups = groupKeys.some(k => grouped[k] && grouped[k].length > 0);
+    if (hasGroups) {
+      panel.appendChild(el('div', { class: 'section-sub' }, `${SPORTS[sport].emoji} ${SPORTS[sport].label} · 小组积分`));
+      groupKeys.forEach(k => {
+        if (!grouped[k]) return;
+        panel.appendChild(el('div', { class: 'group-label' }, `${k}组`));
+        panel.appendChild(buildStandings(sport, grouped[k]));
+      });
+      if (grouped['其他']) {
+        panel.appendChild(el('div', { class: 'group-label' }, '其他'));
+        panel.appendChild(buildStandings(sport, grouped['其他']));
+      }
+    } else {
+      panel.appendChild(el('div', { class: 'section-sub' }, `${SPORTS[sport].emoji} ${SPORTS[sport].label}`));
+      panel.appendChild(buildStandings(sport, teams));
+    }
   });
 
   if (state.teams.length === 0) {
@@ -873,6 +896,110 @@ function buildStandings(sport, teams) {
 
   return el('div', { class: 'standings-wrap' }, table);
 }
+
+/* ===== Top Scorers / Assists ===== */
+renderers.topscorers = function() {
+  const panel = document.getElementById('tab-topscorers');
+  clear(panel);
+  panel.appendChild(el('div', { class: 'section-head' }, el('h2', null, '射手榜 · 助攻榜')));
+
+  // Aggregate goals and assists from finished matches
+  const goalMap = {};   // key: name|teamId -> { name, teamId, count }
+  const assistMap = {};
+  const matches = state.matches.filter(m => (m.sport || 'football') === 'football');
+  matches.forEach(m => {
+    (m.events || []).forEach(ev => {
+      const name = (ev.player || '').trim();
+      if (!name) return;
+      const teamId = ev.team === 'away' ? m.awayId : m.homeId;
+      const key = name + '|' + teamId;
+      if (ev.type === 'goal') {
+        if (!goalMap[key]) goalMap[key] = { name, teamId, count: 0 };
+        goalMap[key].count++;
+      } else if (ev.type === 'assist') {
+        if (!assistMap[key]) assistMap[key] = { name, teamId, count: 0 };
+        assistMap[key].count++;
+      }
+    });
+  });
+
+  const goalList = Object.values(goalMap).sort((a, b) => b.count - a.count);
+  const assistList = Object.values(assistMap).sort((a, b) => b.count - a.count);
+
+  function buildBoard(title, list, unit) {
+    const wrap = el('div', { class: 'leader-board' });
+    wrap.appendChild(el('div', { class: 'section-sub' }, title));
+    if (list.length === 0) {
+      wrap.appendChild(el('div', { class: 'empty' },
+        el('p', null, '比赛尚未开始，等待数据录入'),
+      ));
+      return wrap;
+    }
+    const table = el('table', { class: 'standings-table' },
+      el('thead', null, el('tr', null,
+        el('th', null, '#'),
+        el('th', null, '球员'),
+        el('th', null, '队伍'),
+        el('th', null, unit),
+      )),
+      el('tbody', null,
+        ...list.map((r, i) => el('tr', null,
+          el('td', null, el('span', { class: 'rank-badge top' + (i + 1) }, String(i + 1))),
+          el('td', { class: 'team-name' }, r.name),
+          el('td', null, teamName(r.teamId)),
+          el('td', null, el('strong', { style: 'color:var(--primary);' }, String(r.count))),
+        )),
+      ),
+    );
+    wrap.appendChild(el('div', { class: 'standings-wrap' }, table));
+    return wrap;
+  }
+
+  panel.appendChild(buildBoard('⚽ 射手榜', goalList, '进球'));
+  panel.appendChild(buildBoard('🅰️ 助攻榜', assistList, '助攻'));
+
+  // Combined contribution board
+  const combMap = {};
+  Object.values(goalMap).forEach(r => {
+    const k = r.name + '|' + r.teamId;
+    combMap[k] = { name: r.name, teamId: r.teamId, goals: r.count, assists: 0 };
+  });
+  Object.values(assistMap).forEach(r => {
+    const k = r.name + '|' + r.teamId;
+    if (!combMap[k]) combMap[k] = { name: r.name, teamId: r.teamId, goals: 0, assists: 0 };
+    combMap[k].assists = r.count;
+  });
+  const combList = Object.values(combMap)
+    .map(r => Object.assign({}, r, { total: r.goals + r.assists }))
+    .sort((a, b) => b.total - a.total || b.goals - a.goals);
+
+  if (combList.length > 0) {
+    const wrap = el('div', { class: 'leader-board' });
+    wrap.appendChild(el('div', { class: 'section-sub' }, '🏅 进攻贡献榜 (进球+助攻)'));
+    const table = el('table', { class: 'standings-table' },
+      el('thead', null, el('tr', null,
+        el('th', null, '#'),
+        el('th', null, '球员'),
+        el('th', null, '队伍'),
+        el('th', null, '进'),
+        el('th', null, '助'),
+        el('th', null, '合计'),
+      )),
+      el('tbody', null,
+        ...combList.map((r, i) => el('tr', null,
+          el('td', null, el('span', { class: 'rank-badge top' + (i + 1) }, String(i + 1))),
+          el('td', { class: 'team-name' }, r.name),
+          el('td', null, teamName(r.teamId)),
+          el('td', null, String(r.goals)),
+          el('td', null, String(r.assists)),
+          el('td', null, el('strong', { style: 'color:var(--primary);' }, String(r.total))),
+        )),
+      ),
+    );
+    wrap.appendChild(el('div', { class: 'standings-wrap' }, table));
+    panel.appendChild(wrap);
+  }
+};
 
 /* ===== G4 Insights ===== */
 renderers.insights = function() {
@@ -1358,6 +1485,19 @@ function boot() {
   activateTab(initial);
   // Pre-render others so data tab stats etc. are fresh later
   renderAll();
+  // Auto-load data.json on first visit (when local storage is empty)
+  if (state.teams.length === 0 && state.matches.length === 0) {
+    fetch('data.json')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        state = normalizeState(data);
+        save();
+        renderAll();
+        toast('已自动载入赛程数据');
+      })
+      .catch(() => {});
+  }
 }
 
 if (document.readyState === 'loading') {

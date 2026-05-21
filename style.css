@@ -119,6 +119,20 @@ input, select, textarea { font-family: inherit; }
   font-weight: 600;
   letter-spacing: 0.04em;
 }
+.group-label {
+  display: inline-block;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  margin: 14px 0 6px;
+  letter-spacing: 0.06em;
+}
+.leader-board {
+  margin-bottom: 18px;
+}
 
 /* ===== Buttons ===== */
 .btn {
