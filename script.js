@@ -679,41 +679,82 @@ renderers.bracket = function() {
   })();
   panel.appendChild(el('div', { class: 'bracket-summary' }, summary));
 
-  // 列布局：QF（4 场，左右分列） / SF（2 场） / Final（1 场） / 3-4（1 场）
-  const wrap = el('div', { class: 'bracket-wrap' });
+  // ===== 树状图（diamond 布局）=====
+  // 上半区: QF1 + QF3 → SF1
+  // 下半区: QF2 + QF4 → SF2
+  // 决赛在正中
+  const qfUpper = [k.qf[0], k.qf[2]].filter(Boolean);
+  const qfLower = [k.qf[1], k.qf[3]].filter(Boolean);
+  const sfUp = k.sf[0];
+  const sfDn = k.sf[1];
+  const final = k.final[0];
+  const third = k.thirty[0];
 
-  // QF 拆成左侧（QF1+QF3）和右侧（QF2+QF4），符合"上下半区"惯例
-  const qfLeft  = [k.qf[0], k.qf[2]].filter(Boolean);
-  const qfRight = [k.qf[1], k.qf[3]].filter(Boolean);
-  const sfLeft  = k.sf[0] ? [k.sf[0]] : [];
-  const sfRight = k.sf[1] ? [k.sf[1]] : [];
+  function stageBanner(text, status) {
+    if (!status) return el('div', { class: 'bracket-tree-banner' }, text);
+    const cls = 'bracket-tree-banner ' + status.state;
+    const children = [];
+    if (status.state === 'locked') children.push(el('span', { class: 'bracket-lock' }, '🔒'));
+    else if (status.state === 'live') children.push(el('span', { class: 'bracket-dot' }));
+    else if (status.state === 'done') children.push(el('span', { class: 'bracket-check' }, '✓'));
+    children.push(' ' + text);
+    if (status.state === 'locked' && status.hint) {
+      children.push(el('span', { class: 'bracket-unlock-hint inline' }, '· ' + status.hint));
+    }
+    return el('div', { class: cls }, ...children);
+  }
 
-  // 桌面端：5 列 = QF 左 | SF 左 | 决赛中央（含 3-4）| SF 右 | QF 右
-  // 移动端：堆叠
-  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-qf' },
-    bracketColLabel('八强 · 上半区', { state: qfStatus.state, hint: qfStatus.state === 'locked' ? qfStatus.hint : null }),
-    ...qfLeft.map(m => bracketCard(m, { tag: '八强' })),
-  ));
-  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-sf' },
-    bracketColLabel('半决赛', { state: sfStatus.state, hint: sfStatus.state === 'locked' ? sfStatus.hint : null }),
-    ...sfLeft.map(m => bracketCard(m, { tag: '半决赛' })),
-  ));
-  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-final' },
-    bracketColLabel('🏆 冠亚军', { state: finalStatus.state, modifier: 'trophy', hint: finalStatus.state === 'locked' ? finalStatus.hint : null }),
-    ...k.final.map(m => bracketCard(m, { tag: '决赛', featured: true })),
-    k.thirty.length ? bracketColLabel('🥉 3-4 名', { state: thirtyStatus.state, modifier: 'third', hint: thirtyStatus.state === 'locked' ? thirtyStatus.hint : null }) : null,
-    ...k.thirty.map(m => bracketCard(m, { tag: '3-4 名' })),
-  ));
-  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-sf' },
-    bracketColLabel('半决赛', { state: sfStatus.state, hint: sfStatus.state === 'locked' ? sfStatus.hint : null }),
-    ...sfRight.map(m => bracketCard(m, { tag: '半决赛' })),
-  ));
-  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-qf' },
-    bracketColLabel('八强 · 下半区', { state: qfStatus.state, hint: qfStatus.state === 'locked' ? qfStatus.hint : null }),
-    ...qfRight.map(m => bracketCard(m, { tag: '八强' })),
-  ));
+  const tree = el('div', { class: 'bracket-tree' });
 
-  panel.appendChild(wrap);
+  // ── 上半区 ──
+  if (qfUpper.length) {
+    tree.appendChild(stageBanner('八强 · 上半区', qfStatus));
+    tree.appendChild(el('div', { class: 'bracket-row bracket-row-2' },
+      ...qfUpper.map(m => bracketCard(m, { tag: '八强', compact: true })),
+    ));
+    if (sfUp) tree.appendChild(el('div', { class: 'bracket-link bracket-link-down' }));
+  }
+  if (sfUp) {
+    tree.appendChild(stageBanner('半决赛 · 上', sfStatus));
+    tree.appendChild(el('div', { class: 'bracket-row bracket-row-1' },
+      bracketCard(sfUp, { tag: '半决赛', compact: true }),
+    ));
+    if (final) tree.appendChild(el('div', { class: 'bracket-link bracket-link-straight' }));
+  }
+  // ── 决赛中央 ──
+  if (final) {
+    tree.appendChild(stageBanner('🏆 冠亚军决赛', finalStatus));
+    tree.appendChild(el('div', { class: 'bracket-row bracket-row-final' },
+      bracketCard(final, { tag: '决赛', featured: true }),
+    ));
+    if (sfDn) tree.appendChild(el('div', { class: 'bracket-link bracket-link-straight' }));
+  }
+  // ── 下半区 ──
+  if (sfDn) {
+    tree.appendChild(stageBanner('半决赛 · 下', sfStatus));
+    tree.appendChild(el('div', { class: 'bracket-row bracket-row-1' },
+      bracketCard(sfDn, { tag: '半决赛', compact: true }),
+    ));
+    if (qfLower.length) tree.appendChild(el('div', { class: 'bracket-link bracket-link-up' }));
+  }
+  if (qfLower.length) {
+    tree.appendChild(stageBanner('八强 · 下半区', qfStatus));
+    tree.appendChild(el('div', { class: 'bracket-row bracket-row-2' },
+      ...qfLower.map(m => bracketCard(m, { tag: '八强', compact: true })),
+    ));
+  }
+
+  panel.appendChild(tree);
+
+  // 3-4 名（独立放在树下方）
+  if (third) {
+    panel.appendChild(el('div', { class: 'bracket-extra' },
+      stageBanner('🥉 3-4 名争夺', thirtyStatus),
+      el('div', { class: 'bracket-row bracket-row-1' },
+        bracketCard(third, { tag: '3-4 名', compact: true }),
+      ),
+    ));
+  }
 
   // 小组赛阶段提示
   const groupTeams = state.teams.filter(t => t.intro && /[A-D]组/.test(t.intro));

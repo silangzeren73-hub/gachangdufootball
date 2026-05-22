@@ -1145,51 +1145,121 @@ input, select, textarea { font-family: inherit; }
   letter-spacing: 0.02em;
 }
 
-/* ===== Bracket (对战图) ===== */
-.bracket-wrap {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 8px;
-}
-.bracket-col {
+/* ===== Bracket (对战图 · 树状布局) ===== */
+.bracket-tree {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: stretch;
+  gap: 0;
+  margin: 4px auto 18px;
+  max-width: 520px;
 }
-.bracket-col-label {
-  font-size: 12px;
+.bracket-tree-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11px;
   color: var(--muted);
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-align: center;
-  padding: 6px 0;
-  background: linear-gradient(to right, transparent, #f1f5f9 30%, #f1f5f9 70%, transparent);
+  letter-spacing: 0.14em;
+  padding: 6px 10px;
+  background: #f1f5f9;
   border-radius: 6px;
+  margin: 8px 0 8px;
+  text-align: center;
 }
-.bracket-col-label.trophy { color: var(--sponsor-red); background: linear-gradient(to right, transparent, #fef3f2 30%, #fef3f2 70%, transparent); }
-.bracket-col-label.third  { color: #92400e; background: linear-gradient(to right, transparent, #fff7ed 30%, #fff7ed 70%, transparent); }
-.bracket-col-label-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+.bracket-tree-banner.locked { color: var(--muted); background: #f1f5f9; }
+.bracket-tree-banner.live   { color: var(--primary); background: var(--primary-soft); }
+.bracket-tree-banner.done   { color: #047857; background: #d1fae5; }
+.bracket-tree-banner .bracket-unlock-hint.inline {
+  display: inline;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: left;
+  letter-spacing: 0.02em;
+  margin: 0 0 0 4px;
+  opacity: 0.85;
 }
-.bracket-col-label.locked {
-  color: var(--muted);
-  background: linear-gradient(to right, transparent, #f1f5f9 30%, #f1f5f9 70%, transparent);
+
+.bracket-row {
+  display: grid;
+  gap: 10px;
 }
-.bracket-col-label.locked.trophy,
-.bracket-col-label.locked.third {
-  color: var(--muted);
-  background: linear-gradient(to right, transparent, #f1f5f9 30%, #f1f5f9 70%, transparent);
+.bracket-row-2 { grid-template-columns: 1fr 1fr; }
+.bracket-row-1 { grid-template-columns: 1fr; padding: 0 18%; }
+.bracket-row-final { grid-template-columns: 1fr; padding: 0 8%; }
+
+/* 连接线 */
+.bracket-link {
+  position: relative;
+  margin: 0;
 }
-.bracket-col-label.live {
-  color: var(--primary);
-  background: linear-gradient(to right, transparent, var(--primary-soft) 30%, var(--primary-soft) 70%, transparent);
+.bracket-link-down {
+  height: 26px;
 }
-.bracket-col-label.done {
-  color: #047857;
-  background: linear-gradient(to right, transparent, #d1fae5 30%, #d1fae5 70%, transparent);
+.bracket-link-down::before {
+  /* 左+右+下 边（倒 U） */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 50%;
+  border-left: 2px solid var(--border);
+  border-right: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+}
+.bracket-link-down::after {
+  /* 中心向下延伸的尾巴 */
+  content: '';
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  left: 50%;
+  border-left: 2px solid var(--border);
+  margin-left: -1px;
+}
+.bracket-link-up {
+  height: 26px;
+}
+.bracket-link-up::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  right: 25%;
+  height: 50%;
+  border-left: 2px solid var(--border);
+  border-right: 2px solid var(--border);
+  border-top: 2px solid var(--border);
+}
+.bracket-link-up::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 50%;
+  left: 50%;
+  border-left: 2px solid var(--border);
+  margin-left: -1px;
+}
+.bracket-link-straight {
+  height: 18px;
+}
+.bracket-link-straight::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  border-left: 2px solid var(--border);
+  margin-left: -1px;
+}
+
+/* 3-4 名独立放在树外 */
+.bracket-extra {
+  max-width: 360px;
+  margin: 16px auto 0;
 }
 .bracket-lock { font-size: 13px; }
 .bracket-check { font-weight: 800; font-size: 13px; }
@@ -1328,22 +1398,6 @@ input, select, textarea { font-family: inherit; }
 .bracket-card-foot.live { color: var(--primary); font-weight: 700; }
 .bracket-card-foot.pending { color: var(--muted); }
 .bracket-card-foot.forfeit { color: #b91c1c; font-weight: 600; }
-
-/* 桌面端：5 列横排 bracket */
-@media (min-width: 720px) {
-  .bracket-wrap {
-    grid-template-columns: 1fr 1fr 1.1fr 1fr 1fr;
-    align-items: stretch;
-    gap: 16px;
-  }
-  .bracket-col {
-    justify-content: center;
-  }
-  .bracket-col-sf .bracket-card,
-  .bracket-col-final .bracket-card {
-    margin: auto 0;
-  }
-}
 
 /* ===== Desktop tweaks ===== */
 @media (min-width: 720px) {
