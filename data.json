@@ -2361,8 +2361,8 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779480122,
-  "updatedAt": "2026-05-22 20:02",
+  "dataVersion": 1779481017,
+  "updatedAt": "2026-05-22 20:16",
   "sponsors": [
     {
       "id": "aruobaba",
@@ -2375,7 +2375,27 @@
       "slogan": "阿若博巴 · 为高原热血时刻干杯",
       "sloganTibetan": "ཨ་རོགས་བོད་པ། མཐོ་སྒང་གི་ཁྲག་རྩ་འཁོལ་བའི་དུས་བཟང་ལ་སྐྱེམས་ཆང་འདེགས།",
       "brandColor": "#C8201F",
-      "brandColorDark": "#8B0000"
+      "brandColorDark": "#8B0000",
+      "brandHero": {
+        "image": "logos/sponsors/aruobaba-bujiongguopo.jpg",
+        "title": "布琼古波",
+        "subtitle": "全麦芽酿造 · 三零主义",
+        "desc": "0 糖 · 0 脂 · 0 添加，纯净到最后一滴"
+      },
+      "products": [
+        {
+          "name": "0 度啤酒",
+          "image": "logos/sponsors/aruobaba-bottle-blue.jpg",
+          "spec": "330 ml",
+          "tagline": "蓝瓶 · 高原麦芽精酿"
+        },
+        {
+          "name": "咖啡可乐",
+          "image": "logos/sponsors/aruobaba-coffee-cola.jpg",
+          "spec": "330 ml · 0 糖 0 脂",
+          "tagline": "黑色能量 · 醇香微醺"
+        }
+      ]
     }
   ]
 }

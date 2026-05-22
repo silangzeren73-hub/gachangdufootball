@@ -136,6 +136,58 @@ function sponsorSectionStrip() {
     el('span', { class: 'sponsor-section-line' }),
   );
 }
+function sponsorBrandCard() {
+  // 位置 ⑥：品牌呈现卡片
+  const s = getTitleSponsor();
+  if (!s || !s.brandHero) return null;
+  const h = s.brandHero;
+  return el('div', { class: 'sponsor-brand-card' },
+    el('div', { class: 'sponsor-brand-head' },
+      s.logo ? el('img', { src: s.logo, alt: s.name, class: 'sponsor-brand-head-logo' }) : null,
+      el('div', { class: 'sponsor-brand-head-text' },
+        el('div', { class: 'sponsor-brand-head-label' }, '本届赛事' + levelLabel(s.level) + ' · 品牌呈现'),
+        el('div', { class: 'sponsor-brand-head-name' },
+          s.name,
+          s.nameTibetan ? el('span', { class: 'sponsor-brand-head-tibetan', lang: 'bo' }, ' ' + s.nameTibetan) : null,
+        ),
+      ),
+    ),
+    h.image ? el('div', { class: 'sponsor-brand-hero-img' },
+      el('img', { src: h.image, alt: h.title || s.name, loading: 'lazy' })
+    ) : null,
+    (h.title || h.subtitle || h.desc) ? el('div', { class: 'sponsor-brand-caption' },
+      h.title ? el('h3', { class: 'sponsor-brand-title' }, h.title) : null,
+      h.subtitle ? el('div', { class: 'sponsor-brand-subtitle' }, h.subtitle) : null,
+      h.desc ? el('p', { class: 'sponsor-brand-desc' }, h.desc) : null,
+    ) : null,
+  );
+}
+function sponsorProductRow() {
+  // 位置 ⑦：产品系列
+  const s = getTitleSponsor();
+  if (!s || !Array.isArray(s.products) || s.products.length === 0) return null;
+  const wrap = el('div', { class: 'sponsor-products-wrap' });
+  wrap.appendChild(el('div', { class: 'sponsor-products-head' },
+    el('span', { class: 'sponsor-products-line' }),
+    el('span', { class: 'sponsor-products-title' }, s.name + ' · 产品系列'),
+    el('span', { class: 'sponsor-products-line' }),
+  ));
+  const grid = el('div', { class: 'sponsor-products-grid' });
+  s.products.forEach(p => {
+    grid.appendChild(el('div', { class: 'sponsor-product-card' },
+      p.image ? el('div', { class: 'sponsor-product-img' },
+        el('img', { src: p.image, alt: p.name, loading: 'lazy' })
+      ) : null,
+      el('div', { class: 'sponsor-product-text' },
+        el('div', { class: 'sponsor-product-name' }, p.name),
+        p.spec ? el('div', { class: 'sponsor-product-spec' }, p.spec) : null,
+        p.tagline ? el('div', { class: 'sponsor-product-tagline' }, p.tagline) : null,
+      ),
+    ));
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
 
 /* ===== Utils ===== */
 function el(tag, attrs, ...children) {
@@ -381,6 +433,12 @@ renderers.today = function() {
       el('button', { class: 'btn ghost', onClick: () => activateTab('data') }, '💾 数据'),
     ),
   ));
+
+  // 位置 ⑥ + ⑦：品牌呈现 + 产品系列
+  const brandCard = sponsorBrandCard();
+  if (brandCard) panel.appendChild(brandCard);
+  const productRow = sponsorProductRow();
+  if (productRow) panel.appendChild(productRow);
 
   if (state.teams.length === 0 && state.matches.length === 0) {
     panel.appendChild(el('div', { class: 'card', style: 'margin-top:14px;border:1px dashed var(--border);text-align:center;' },
