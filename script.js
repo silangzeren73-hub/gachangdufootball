@@ -4,6 +4,35 @@
 
 const STORAGE_KEY = 'cy-sports-workstation-v1';
 const SHOOT_KEY = 'cy-sports-shoot-v1';
+const ADMIN_KEY = 'cy-sports-admin-v1';
+
+/* ===== Admin mode =====
+   URL ?admin=1 开启，?admin=0 退出，状态写入 localStorage 持久化。
+   非管理员看不到任何编辑入口；只能浏览展示型内容。
+*/
+const isAdmin = (() => {
+  try {
+    const url = new URLSearchParams(location.search);
+    if (url.has('admin')) {
+      const v = url.get('admin');
+      if (v === '0' || v === 'off' || v === 'false') {
+        localStorage.removeItem(ADMIN_KEY);
+        return false;
+      }
+      if (v === '1' || v === 'on' || v === 'true') {
+        localStorage.setItem(ADMIN_KEY, '1');
+        return true;
+      }
+    }
+    return localStorage.getItem(ADMIN_KEY) === '1';
+  } catch (_) { return false; }
+})();
+function exitAdmin() {
+  localStorage.removeItem(ADMIN_KEY);
+  const u = new URL(location.href);
+  u.searchParams.delete('admin');
+  location.href = u.toString();
+}
 
 const SPORTS = {
   football: { label: '足球', emoji: '⚽', win: 3, draw: 1, loss: 0 },
@@ -174,7 +203,9 @@ function copyText(text) {
 function confirmDel(msg) { return window.confirm(msg || '确定删除？'); }
 
 /* ===== Tabs ===== */
-const TABS = ['today','schedule','teams','players','standings','topscorers','insights','reports','shootlist','data'];
+const ALL_TABS  = ['today','schedule','teams','players','standings','topscorers','insights','reports','shootlist','data'];
+const ADMIN_ONLY_TABS = ['data'];
+const TABS = isAdmin ? ALL_TABS : ALL_TABS.filter(t => !ADMIN_ONLY_TABS.includes(t));
 const renderers = {};
 
 function activateTab(name) {
@@ -211,6 +242,7 @@ function closeModal() {
 
 /* ===== Quick add menu ===== */
 function openQuickAdd() {
+  if (!isAdmin) return;
   const wrap = el('div', { class: 'btn-row', style: 'flex-direction: column; gap:10px;' },
     el('button', { class: 'btn block', onClick: () => { closeModal(); openTeamForm(); } }, '＋ 新增队伍'),
     el('button', { class: 'btn block accent', onClick: () => { closeModal(); openMatchForm(); } }, '＋ 新增比赛'),
@@ -263,8 +295,8 @@ function matchCard(m) {
     ),
     (m.status === 'forfeit' && m.notes) ? el('div', { class: 'forfeit-note' }, '⚠ ' + m.notes) : null,
     el('div', { class: 'match-actions' },
-      el('button', { class: 'btn sm', onClick: () => openScoreEntry(m.id) }, '比分'),
-      el('button', { class: 'btn sm ghost', onClick: () => openMatchForm(m.id) }, '编辑'),
+      isAdmin ? el('button', { class: 'btn sm', onClick: () => openScoreEntry(m.id) }, '比分') : null,
+      isAdmin ? el('button', { class: 'btn sm ghost', onClick: () => openMatchForm(m.id) }, '编辑') : null,
       el('button', { class: 'btn sm ghost', onClick: () => { activateTab('insights'); setTimeout(() => focusInsight(m.id), 50); } }, '看点'),
       el('button', { class: 'btn sm ghost', onClick: () => { activateTab('reports'); setTimeout(() => focusReport(m.id), 50); } }, '战报'),
     ),
@@ -298,7 +330,7 @@ renderers.today = function() {
   if (todayMatches.length === 0) {
     panel.appendChild(el('div', { class: 'empty' },
       el('p', null, '今天没有比赛'),
-      el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 安排一场')
+      isAdmin ? el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 安排一场') : null,
     ));
   } else {
     todayMatches.forEach(m => panel.appendChild(matchCard(m)));
@@ -310,11 +342,11 @@ renderers.today = function() {
       el('button', { class: 'btn', onClick: () => activateTab('shootlist') }, '📷 拍摄清单'),
       el('button', { class: 'btn ghost', onClick: () => activateTab('standings') }, '📊 积分榜'),
       el('button', { class: 'btn ghost', onClick: () => activateTab('reports') }, '📝 战报'),
-      el('button', { class: 'btn ghost', onClick: () => activateTab('data') }, '💾 数据'),
+      isAdmin ? el('button', { class: 'btn ghost', onClick: () => activateTab('data') }, '💾 数据') : null,
     ),
   ));
 
-  if (state.teams.length === 0 && state.matches.length === 0) {
+  if (isAdmin && state.teams.length === 0 && state.matches.length === 0) {
     panel.appendChild(el('div', { class: 'card', style: 'margin-top:14px;border:1px dashed var(--border);text-align:center;' },
       el('p', { class: 'muted' }, '还没有数据？先去「数据」页导入示例。'),
       el('button', { class: 'btn ghost sm', onClick: () => activateTab('data') }, '前往'),
@@ -329,13 +361,13 @@ renderers.schedule = function() {
 
   panel.appendChild(el('div', { class: 'section-head' },
     el('h2', null, '赛程'),
-    el('button', { class: 'btn sm', onClick: () => openMatchForm() }, '＋ 新建')
+    isAdmin ? el('button', { class: 'btn sm', onClick: () => openMatchForm() }, '＋ 新建') : null,
   ));
 
   if (state.matches.length === 0) {
     panel.appendChild(el('div', { class: 'empty' },
       el('p', null, '还没有比赛'),
-      el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 新建比赛'),
+      isAdmin ? el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 新建比赛') : null,
     ));
     return;
   }
@@ -352,6 +384,7 @@ renderers.schedule = function() {
 };
 
 function openMatchForm(matchId) {
+  if (!isAdmin) return;
   const m = matchId ? getMatch(matchId) : null;
   const isEdit = !!m;
 
@@ -444,6 +477,7 @@ function openMatchForm(matchId) {
 
 /* ===== Score entry ===== */
 function openScoreEntry(matchId) {
+  if (!isAdmin) return;
   const m = getMatch(matchId);
   if (!m) return;
   const wrap = el('div');
@@ -565,13 +599,13 @@ renderers.teams = function() {
   clear(panel);
   panel.appendChild(el('div', { class: 'section-head' },
     el('h2', null, '队伍'),
-    el('button', { class: 'btn sm', onClick: () => openTeamForm() }, '＋ 新建'),
+    isAdmin ? el('button', { class: 'btn sm', onClick: () => openTeamForm() }, '＋ 新建') : null,
   ));
 
   if (state.teams.length === 0) {
     panel.appendChild(el('div', { class: 'empty' },
       el('p', null, '还没有队伍'),
-      el('button', { class: 'btn', onClick: () => openTeamForm() }, '＋ 新建队伍'),
+      isAdmin ? el('button', { class: 'btn', onClick: () => openTeamForm() }, '＋ 新建队伍') : null,
     ));
     return;
   }
@@ -590,9 +624,9 @@ renderers.teams = function() {
             t.banned ? el('span', { class: 'tag banned' }, '⛔ ' + (t.banReason || '已禁赛')) : null,
           ),
         ),
-        el('div', { class: 'btn-row' },
+        isAdmin ? el('div', { class: 'btn-row' },
           el('button', { class: 'btn sm ghost', onClick: () => openTeamForm(t.id) }, '编辑'),
-        ),
+        ) : null,
       ),
       t.captain ? el('div', { class: 'small muted' }, '队长：' + t.captain) : null,
       t.intro ? el('div', { class: 'small mt-8' }, t.intro) : null,
@@ -606,11 +640,16 @@ renderers.teams = function() {
         );
       })(),
       el('div', { class: 'player-list' },
-        ...(t.players || []).map(p => el('span', { class: 'player-tag', onClick: () => openPlayerForm(p.id, t.id) },
+        ...(t.players || []).map(p => el('span',
+          isAdmin
+            ? { class: 'player-tag', onClick: () => openPlayerForm(p.id, t.id) }
+            : { class: 'player-tag' },
           p.number ? el('span', { class: 'num' }, '#' + p.number) : null,
           p.name + (p.position ? ' · ' + p.position : '') + (p.age ? ` · ${p.age}岁` : '')
         )),
-        el('span', { class: 'player-tag', style: 'color:var(--primary);font-weight:600;', onClick: () => openPlayerForm(null, t.id) }, '＋ 球员'),
+        isAdmin
+          ? el('span', { class: 'player-tag', style: 'color:var(--primary);font-weight:600;', onClick: () => openPlayerForm(null, t.id) }, '＋ 球员')
+          : null,
       ),
     );
     panel.appendChild(card);
@@ -618,6 +657,7 @@ renderers.teams = function() {
 };
 
 function openTeamForm(teamId) {
+  if (!isAdmin) return;
   const t = teamId ? getTeam(teamId) : null;
   const isEdit = !!t;
   const form = el('form', null);
@@ -691,6 +731,7 @@ function getPlayer(playerId) {
 }
 
 function openPlayerForm(playerId, teamId) {
+  if (!isAdmin) return;
   const found = playerId ? getPlayer(playerId) : null;
   const p = found ? found.player : null;
   const isEdit = !!p;
@@ -775,7 +816,7 @@ renderers.players = function() {
 
   panel.appendChild(el('div', { class: 'section-head' },
     el('h2', null, '球员故事库'),
-    el('button', { class: 'btn sm', onClick: () => openPlayerForm() }, '＋ 新增'),
+    isAdmin ? el('button', { class: 'btn sm', onClick: () => openPlayerForm() }, '＋ 新增') : null,
   ));
 
   const all = [];
@@ -783,7 +824,7 @@ renderers.players = function() {
   if (all.length === 0) {
     panel.appendChild(el('div', { class: 'empty' },
       el('p', null, '还没有球员故事'),
-      el('button', { class: 'btn', onClick: () => openPlayerForm() }, '＋ 新增球员'),
+      isAdmin ? el('button', { class: 'btn', onClick: () => openPlayerForm() }, '＋ 新增球员') : null,
     ));
     return;
   }
@@ -816,10 +857,10 @@ renderers.players = function() {
         ),
         p.experience ? el('div', { class: 'story-text' }, p.experience) : null,
         p.skills ? el('div', { class: 'story-text muted small mt-8' }, '🎯 ' + p.skills) : null,
-        el('div', { class: 'btn-row mt-12' },
+        isAdmin ? el('div', { class: 'btn-row mt-12' },
           el('button', { class: 'btn sm ghost', onClick: () => openPlayerForm(p.id) }, '编辑'),
           el('button', { class: 'btn sm', onClick: () => openVideoTopic(p, t) }, '生成短视频选题'),
-        ),
+        ) : null,
       );
       listWrap.appendChild(card);
     });
@@ -1123,19 +1164,21 @@ renderers.insights = function() {
       return block;
     }
 
-    editor.appendChild(ratingsBlock('主队', m.homeId, 'home'));
-    editor.appendChild(ratingsBlock('客队', m.awayId, 'away'));
+    if (isAdmin) {
+      editor.appendChild(ratingsBlock('主队', m.homeId, 'home'));
+      editor.appendChild(ratingsBlock('客队', m.awayId, 'away'));
 
-    const ta = el('textarea', { placeholder: '人工补充看点 (可选)' }, an.keyPoints || '');
-    ta.addEventListener('change', () => { an.keyPoints = ta.value.trim(); save(); });
-    editor.appendChild(el('div', { class: 'form-group' }, el('label', null, '看点补充'), ta));
+      const ta = el('textarea', { placeholder: '人工补充看点 (可选)' }, an.keyPoints || '');
+      ta.addEventListener('change', () => { an.keyPoints = ta.value.trim(); save(); });
+      editor.appendChild(el('div', { class: 'form-group' }, el('label', null, '看点补充'), ta));
+    }
 
     const out = el('div', { class: 'insight-output' });
     function regen() {
       out.textContent = renderInsight(m, an);
     }
     editor.appendChild(el('div', { class: 'btn-row' },
-      el('button', { class: 'btn', onClick: regen }, '🪄 生成看点'),
+      isAdmin ? el('button', { class: 'btn', onClick: regen }, '🪄 生成看点') : null,
       el('button', { class: 'btn ghost', onClick: () => copyText(out.textContent) }, '复制'),
     ));
     editor.appendChild(out);
@@ -1521,14 +1564,24 @@ function loadSampleData() {
 
 /* ===== Boot ===== */
 function bindEvents() {
+  // 隐藏非管理员可见的 tab 按钮（数据等）
   document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (!TABS.includes(btn.dataset.tab)) {
+      btn.style.display = 'none';
+      return;
+    }
     btn.addEventListener('click', () => activateTab(btn.dataset.tab));
   });
   window.addEventListener('hashchange', () => {
     const name = location.hash.slice(1);
     if (TABS.includes(name)) activateTab(name);
   });
-  document.getElementById('quickAddBtn').addEventListener('click', openQuickAdd);
+  const quickAdd = document.getElementById('quickAddBtn');
+  if (isAdmin) {
+    quickAdd.addEventListener('click', openQuickAdd);
+  } else {
+    quickAdd.style.display = 'none';
+  }
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('modal').addEventListener('click', (e) => {
     if (e.target.id === 'modal') closeModal();
@@ -1538,10 +1591,24 @@ function bindEvents() {
     if (f) importJson(f);
     e.target.value = '';
   });
+  renderAdminBadge();
+}
+
+function renderAdminBadge() {
+  if (!isAdmin) return;
+  const badge = document.createElement('div');
+  badge.className = 'admin-badge';
+  badge.innerHTML = '<span>✏️ 管理员模式</span><button type="button">退出</button>';
+  badge.querySelector('button').addEventListener('click', exitAdmin);
+  document.body.appendChild(badge);
 }
 
 function boot() {
   bindEvents();
+  if (!isAdmin) {
+    const sub = document.getElementById('appSub');
+    if (sub) sub.textContent = '只读模式 · 仅供查看';
+  }
   const initial = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
   activateTab(initial);
   renderAll();

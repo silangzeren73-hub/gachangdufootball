@@ -736,6 +736,36 @@ input, select, textarea { font-family: inherit; }
 .mt-12 { margin-top: 12px; }
 .hidden { display: none !important; }
 
+/* ===== Admin badge ===== */
+.admin-badge {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  background: rgba(22, 163, 74, 0.95);
+  color: white;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+  z-index: 50;
+  pointer-events: auto;
+}
+.admin-badge button {
+  border: none;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.admin-badge button:hover { background: rgba(255, 255, 255, 0.28); }
+
 /* ===== Desktop tweaks ===== */
 @media (min-width: 720px) {
   .modal-backdrop { align-items: center; }
