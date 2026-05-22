@@ -1145,6 +1145,140 @@ input, select, textarea { font-family: inherit; }
   letter-spacing: 0.02em;
 }
 
+/* ===== Bracket (对战图) ===== */
+.bracket-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+.bracket-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bracket-col-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-align: center;
+  padding: 6px 0;
+  background: linear-gradient(to right, transparent, #f1f5f9 30%, #f1f5f9 70%, transparent);
+  border-radius: 6px;
+}
+.bracket-col-label.trophy { color: var(--sponsor-red); background: linear-gradient(to right, transparent, #fef3f2 30%, #fef3f2 70%, transparent); }
+.bracket-col-label.third  { color: #92400e; background: linear-gradient(to right, transparent, #fff7ed 30%, #fff7ed 70%, transparent); }
+
+.bracket-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.bracket-card:active { transform: scale(0.98); }
+.bracket-card-featured {
+  border: 2px solid var(--sponsor-red);
+  background: linear-gradient(180deg, #fff 0%, #fef3f2 100%);
+  box-shadow: 0 4px 16px rgba(200,32,31,0.18);
+}
+.bracket-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.bracket-card-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.bracket-card-featured .bracket-card-tag { color: var(--sponsor-red); }
+.bracket-card-time {
+  font-size: 10px;
+  color: var(--muted);
+}
+.bracket-card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.bracket-card-row.winner {
+  color: var(--text);
+  font-weight: 700;
+}
+.bracket-card-row.winner .bracket-card-score { color: var(--primary); }
+.bracket-card-row.loser {
+  color: var(--muted);
+  opacity: 0.7;
+}
+.bracket-card-tba {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: var(--muted);
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px dashed var(--border);
+  flex-shrink: 0;
+}
+.bracket-card-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bracket-card-score {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  min-width: 20px;
+  text-align: right;
+}
+.bracket-card-foot {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+.bracket-card-foot.live { color: var(--primary); font-weight: 700; }
+.bracket-card-foot.pending { color: var(--muted); }
+.bracket-card-foot.forfeit { color: #b91c1c; font-weight: 600; }
+
+/* 桌面端：5 列横排 bracket */
+@media (min-width: 720px) {
+  .bracket-wrap {
+    grid-template-columns: 1fr 1fr 1.1fr 1fr 1fr;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .bracket-col {
+    justify-content: center;
+  }
+  .bracket-col-sf .bracket-card,
+  .bracket-col-final .bracket-card {
+    margin: auto 0;
+  }
+}
+
 /* ===== Desktop tweaks ===== */
 @media (min-width: 720px) {
   .modal-backdrop { align-items: center; }

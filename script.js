@@ -326,7 +326,7 @@ function copyText(text) {
 function confirmDel(msg) { return window.confirm(msg || '确定删除？'); }
 
 /* ===== Tabs ===== */
-const TABS = ['today','schedule','teams','players','standings','topscorers','insights','reports','shootlist','data'];
+const TABS = ['today','schedule','bracket','teams','players','standings','topscorers','insights','reports','shootlist','data'];
 const renderers = {};
 
 function runRenderer(name) {
@@ -529,6 +529,146 @@ renderers.schedule = function() {
   });
   const finalStrip = sponsorSectionStrip();
   if (finalStrip) panel.appendChild(finalStrip);
+};
+
+/* ===== Bracket (淘汰赛对战图) ===== */
+const BRACKET_STAGES = [
+  { key: 'qf',    label: '八强',   match: /^八强/ },
+  { key: 'sf',    label: '半决赛', match: /^半决赛/ },
+  { key: 'thirty', label: '3-4 名', match: /^3-4名/ },
+  { key: 'final', label: '冠亚军', match: /^冠亚军/ },
+];
+function findKnockoutMatches() {
+  const out = { qf: [], sf: [], thirty: [], final: [] };
+  state.matches.forEach(m => {
+    const r = m.round || '';
+    for (const st of BRACKET_STAGES) {
+      if (st.match.test(r)) { out[st.key].push(m); break; }
+    }
+  });
+  Object.keys(out).forEach(k => out[k] = sortMatches(out[k]));
+  return out;
+}
+function parseRoundHint(round) {
+  // 八强 · A1 vs C2  → ['A1', 'C2']
+  // 半决赛 · 26胜 vs 28胜  → ['26胜', '28胜']
+  // 3-4名 · 30负 vs 31负  → ['30负', '31负']
+  // 冠亚军 · 30胜 vs 31胜  → ['30胜', '31胜']
+  const m = (round || '').match(/·\s*(.+?)\s+vs\s+(.+?)\s*$/);
+  if (!m) return ['?', '?'];
+  return [m[1].trim(), m[2].trim()];
+}
+function bracketTeamLabel(m, side) {
+  // 已经确定的队伍直接显示队名；否则用 round 字段里的位次（如 A1 / 26胜）
+  const id = side === 'home' ? m.homeId : m.awayId;
+  const t = getTeam(id);
+  if (t && t.id !== 't-tba') return t.name;
+  const [h, a] = parseRoundHint(m.round);
+  const hint = side === 'home' ? h : a;
+  // 把 "26胜" 转成 "第 26 场胜者" 之类更易读的描述（可选）
+  const nice = hint
+    .replace(/^(\d+)胜$/, '$1 号胜者')
+    .replace(/^(\d+)负$/, '$1 号负者');
+  return nice;
+}
+function bracketCard(m, opts) {
+  opts = opts || {};
+  const home = getTeam(m.homeId), away = getTeam(m.awayId);
+  const hs = m.homeScore || 0, as = m.awayScore || 0;
+  const hasResult = m.status === 'finished' || m.status === 'forfeit';
+  const homeWin = hasResult && hs > as;
+  const awayWin = hasResult && as > hs;
+  const dt = m.datetime ? fmtDT(m.datetime) : '';
+  return el('div', {
+    class: 'bracket-card' + (opts.featured ? ' bracket-card-featured' : ''),
+    onClick: () => { activateTab('schedule'); },
+  },
+    el('div', { class: 'bracket-card-head' },
+      el('span', { class: 'bracket-card-tag' }, opts.tag || (m.round || '').split(' · ')[0]),
+      el('span', { class: 'bracket-card-time' }, dt),
+    ),
+    el('div', { class: 'bracket-card-row ' + (homeWin ? 'winner' : (awayWin ? 'loser' : '')) },
+      (home && home.id !== 't-tba') ? teamLogo(home, 'sm') : el('span', { class: 'bracket-card-tba' }, '?'),
+      el('span', { class: 'bracket-card-name' }, bracketTeamLabel(m, 'home')),
+      el('span', { class: 'bracket-card-score' }, hasResult ? String(hs) : ''),
+    ),
+    el('div', { class: 'bracket-card-row ' + (awayWin ? 'winner' : (homeWin ? 'loser' : '')) },
+      (away && away.id !== 't-tba') ? teamLogo(away, 'sm') : el('span', { class: 'bracket-card-tba' }, '?'),
+      el('span', { class: 'bracket-card-name' }, bracketTeamLabel(m, 'away')),
+      el('span', { class: 'bracket-card-score' }, hasResult ? String(as) : ''),
+    ),
+    m.status === 'forfeit' ? el('div', { class: 'bracket-card-foot forfeit' }, '弃权 / 判负') :
+      hasResult ? el('div', { class: 'bracket-card-foot' }, '已结束') :
+      m.status === 'live' ? el('div', { class: 'bracket-card-foot live' }, '进行中') :
+      el('div', { class: 'bracket-card-foot pending' }, '待开赛'),
+  );
+}
+
+renderers.bracket = function() {
+  const panel = document.getElementById('tab-bracket');
+  clear(panel);
+  panel.appendChild(el('div', { class: 'section-head' }, el('h2', null, '对战图')));
+
+  const k = findKnockoutMatches();
+  if (k.qf.length + k.sf.length + k.thirty.length + k.final.length === 0) {
+    panel.appendChild(sponsorEmptyHero('暂无淘汰赛阶段'));
+    return;
+  }
+
+  panel.appendChild(el('p', { class: 'muted small', style: 'margin:0 4px 12px;' },
+    '小组赛 → 八强 → 半决赛 → 冠亚军决赛 + 3-4 名争夺。比赛结果确定后会自动填入。'
+  ));
+
+  // 列布局：QF（4 场，左右分列） / SF（2 场） / Final（1 场） / 3-4（1 场）
+  const wrap = el('div', { class: 'bracket-wrap' });
+
+  // QF 拆成左侧（QF1+QF3）和右侧（QF2+QF4），符合"上下半区"惯例
+  const qfLeft  = [k.qf[0], k.qf[2]].filter(Boolean);
+  const qfRight = [k.qf[1], k.qf[3]].filter(Boolean);
+  const sfLeft  = k.sf[0] ? [k.sf[0]] : [];
+  const sfRight = k.sf[1] ? [k.sf[1]] : [];
+
+  // 桌面端：5 列 = QF 左 | SF 左 | 决赛中央（含 3-4）| SF 右 | QF 右
+  // 移动端：堆叠
+  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-qf' },
+    el('div', { class: 'bracket-col-label' }, '八强 · 上半区'),
+    ...qfLeft.map(m => bracketCard(m, { tag: '八强' })),
+  ));
+  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-sf' },
+    el('div', { class: 'bracket-col-label' }, '半决赛'),
+    ...sfLeft.map(m => bracketCard(m, { tag: '半决赛' })),
+  ));
+  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-final' },
+    el('div', { class: 'bracket-col-label trophy' }, '🏆 冠亚军'),
+    ...k.final.map(m => bracketCard(m, { tag: '决赛', featured: true })),
+    k.thirty.length ? el('div', { class: 'bracket-col-label third' }, '🥉 3-4 名') : null,
+    ...k.thirty.map(m => bracketCard(m, { tag: '3-4 名' })),
+  ));
+  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-sf' },
+    el('div', { class: 'bracket-col-label' }, '半决赛'),
+    ...sfRight.map(m => bracketCard(m, { tag: '半决赛' })),
+  ));
+  wrap.appendChild(el('div', { class: 'bracket-col bracket-col-qf' },
+    el('div', { class: 'bracket-col-label' }, '八强 · 下半区'),
+    ...qfRight.map(m => bracketCard(m, { tag: '八强' })),
+  ));
+
+  panel.appendChild(wrap);
+
+  // 小组赛阶段提示
+  const groupTeams = state.teams.filter(t => t.intro && /[A-D]组/.test(t.intro));
+  if (groupTeams.length) {
+    panel.appendChild(el('div', { class: 'section-sub' }, '小组赛 · 出线提示'));
+    panel.appendChild(el('div', { class: 'card', style: 'font-size:13px;line-height:1.8;' },
+      el('p', { style: 'margin:0;' },
+        '小组赛阶段 ', el('strong', null, '每组前两名'), ' 晋级八强：',
+      ),
+      el('ul', { style: 'margin:8px 0 0;padding-left:20px;' },
+        el('li', null, '八强对阵：', el('strong', null, 'A1 vs C2 / B1 vs D2 / C1 vs A2 / D1 vs B2'), '（交叉对阵）'),
+        el('li', null, '具体晋级名额以「积分榜」最终排名为准'),
+      ),
+    ));
+  }
 };
 
 function openMatchForm(matchId) {
