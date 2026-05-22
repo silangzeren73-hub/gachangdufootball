@@ -1605,10 +1605,6 @@ function renderAdminBadge() {
 
 function boot() {
   bindEvents();
-  if (!isAdmin) {
-    const sub = document.getElementById('appSub');
-    if (sub) sub.textContent = '只读模式 · 仅供查看';
-  }
   const initial = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
   activateTab(initial);
   renderAll();
