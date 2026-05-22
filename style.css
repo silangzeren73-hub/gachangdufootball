@@ -1076,6 +1076,75 @@ input, select, textarea { font-family: inherit; }
   font-weight: 500;
 }
 
+/* ===== Sponsor: Per-page slim footer ===== */
+.sponsor-page-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #fff 0%, var(--sponsor-cream) 100%);
+  border: 1px solid rgba(200,32,31,0.18);
+  border-left: 3px solid var(--sponsor-red);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 28px 0 12px;
+  box-shadow: var(--shadow-sm);
+}
+.sponsor-page-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.sponsor-page-footer-logo {
+  height: 36px;
+  width: auto;
+  flex-shrink: 0;
+}
+.sponsor-page-footer-text {
+  flex: 1;
+  min-width: 0;
+}
+.sponsor-page-footer-label {
+  font-size: 10px;
+  color: var(--sponsor-red);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.sponsor-page-footer-slogan {
+  font-size: 13px;
+  color: #2a1a18;
+  font-weight: 600;
+  margin-top: 2px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sponsor-page-footer-product {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+}
+.sponsor-page-footer-product img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background: white;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 2px 6px rgba(60,30,15,0.12);
+}
+.sponsor-page-footer-product-name {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
 /* ===== Desktop tweaks ===== */
 @media (min-width: 720px) {
   .modal-backdrop { align-items: center; }

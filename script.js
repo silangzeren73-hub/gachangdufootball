@@ -189,6 +189,41 @@ function sponsorProductRow() {
   return wrap;
 }
 
+function sponsorPageFooter(tabName) {
+  // 每个非「今日」tab 底部的赞助页脚，3 张产品图轮着出
+  const s = getTitleSponsor();
+  if (!s) return null;
+  const features = [...((s.products || []).map(p => ({
+    image: p.image, name: p.name, spec: p.spec, tagline: p.tagline,
+  })))];
+  if (s.brandHero && s.brandHero.image) {
+    features.push({
+      image: s.brandHero.image,
+      name: s.brandHero.title || s.name,
+      spec: s.brandHero.subtitle || '',
+      tagline: s.brandHero.desc || '',
+    });
+  }
+  let featured = null;
+  if (features.length) {
+    const h = (tabName || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    featured = features[h % features.length];
+  }
+  return el('div', { class: 'sponsor-page-footer' },
+    el('div', { class: 'sponsor-page-footer-left' },
+      s.logo ? el('img', { src: s.logo, alt: s.name, class: 'sponsor-page-footer-logo' }) : null,
+      el('div', { class: 'sponsor-page-footer-text' },
+        el('div', { class: 'sponsor-page-footer-label' }, '本届赛事' + levelLabel(s.level) + ' · ' + levelLabelEn(s.level)),
+        s.slogan ? el('div', { class: 'sponsor-page-footer-slogan' }, s.slogan) : null,
+      ),
+    ),
+    featured ? el('div', { class: 'sponsor-page-footer-product' },
+      el('img', { src: featured.image, alt: featured.name, loading: 'lazy' }),
+      featured.name ? el('span', { class: 'sponsor-page-footer-product-name' }, featured.name) : null,
+    ) : null,
+  );
+}
+
 /* ===== Utils ===== */
 function el(tag, attrs, ...children) {
   const n = document.createElement(tag);
@@ -294,6 +329,17 @@ function confirmDel(msg) { return window.confirm(msg || '确定删除？'); }
 const TABS = ['today','schedule','teams','players','standings','topscorers','insights','reports','shootlist','data'];
 const renderers = {};
 
+function runRenderer(name) {
+  if (!renderers[name]) return;
+  renderers[name]();
+  // 「今日」页已经有完整品牌呈现 ⑥+⑦，不再加 footer
+  if (name === 'today' || name === 'data') return;
+  const panel = document.getElementById('tab-' + name);
+  if (!panel) return;
+  const footer = sponsorPageFooter(name);
+  if (footer) panel.appendChild(footer);
+}
+
 function activateTab(name) {
   if (!TABS.includes(name)) name = 'today';
   document.querySelectorAll('.tab-btn').forEach(b => {
@@ -305,14 +351,14 @@ function activateTab(name) {
   if (location.hash.slice(1) !== name) {
     history.replaceState(null, '', '#' + name);
   }
-  if (renderers[name]) renderers[name]();
+  runRenderer(name);
   const active = document.querySelector('.tab-btn.active');
   if (active) active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
 }
 
 function renderAll() {
   renderTopSponsorStrip();
-  Object.values(renderers).forEach(fn => { try { fn(); } catch (_) {} });
+  Object.keys(renderers).forEach(name => { try { runRenderer(name); } catch (_) {} });
 }
 
 /* ===== Modal ===== */
