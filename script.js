@@ -549,6 +549,47 @@ function findKnockoutMatches() {
   Object.keys(out).forEach(k => out[k] = sortMatches(out[k]));
   return out;
 }
+function isStageLocked(matches) {
+  // 当所有比赛的双方都还是 t-tba（待定）时，认为该阶段未解锁
+  if (!matches || !matches.length) return false;
+  return matches.every(m =>
+    (!m.homeId || m.homeId === 't-tba') && (!m.awayId || m.awayId === 't-tba')
+  );
+}
+function isStageAllFinished(matches) {
+  if (!matches || !matches.length) return false;
+  return matches.every(m => m.status === 'finished' || m.status === 'forfeit');
+}
+function bracketStageStatus(stageKey, k) {
+  // 返回 { state: 'locked'|'live'|'done', hint: '...' }
+  const matches = k[stageKey] || [];
+  if (matches.length === 0) return { state: 'pending', hint: '尚未安排' };
+  if (isStageLocked(matches)) {
+    if (stageKey === 'qf') return { state: 'locked', hint: '小组赛全部结束后揭晓' };
+    if (stageKey === 'sf') return { state: 'locked', hint: '八强战结束后揭晓' };
+    if (stageKey === 'final' || stageKey === 'thirty') return { state: 'locked', hint: '半决赛结束后揭晓' };
+    return { state: 'locked', hint: '待解锁' };
+  }
+  if (isStageAllFinished(matches)) return { state: 'done', hint: '已完成' };
+  return { state: 'live', hint: '已解锁' };
+}
+function bracketColLabel(text, opts) {
+  opts = opts || {};
+  const cls = 'bracket-col-label'
+    + (opts.modifier ? ' ' + opts.modifier : '')
+    + (opts.state === 'locked' ? ' locked' : '')
+    + (opts.state === 'done' ? ' done' : '')
+    + (opts.state === 'live' ? ' live' : '');
+  return el('div', { class: cls },
+    el('div', { class: 'bracket-col-label-row' },
+      opts.state === 'locked' ? el('span', { class: 'bracket-lock' }, '🔒') : null,
+      opts.state === 'live' ? el('span', { class: 'bracket-dot' }) : null,
+      opts.state === 'done' ? el('span', { class: 'bracket-check' }, '✓') : null,
+      el('span', { class: 'bracket-col-label-text' }, text),
+    ),
+    opts.hint ? el('div', { class: 'bracket-unlock-hint' }, opts.hint) : null,
+  );
+}
 function parseRoundHint(round) {
   // 八强 · A1 vs C2  → ['A1', 'C2']
   // 半决赛 · 26胜 vs 28胜  → ['26胜', '28胜']
@@ -579,8 +620,11 @@ function bracketCard(m, opts) {
   const homeWin = hasResult && hs > as;
   const awayWin = hasResult && as > hs;
   const dt = m.datetime ? fmtDT(m.datetime) : '';
+  const locked = (!m.homeId || m.homeId === 't-tba') && (!m.awayId || m.awayId === 't-tba');
   return el('div', {
-    class: 'bracket-card' + (opts.featured ? ' bracket-card-featured' : ''),
+    class: 'bracket-card'
+      + (opts.featured ? ' bracket-card-featured' : '')
+      + (locked ? ' bracket-card-locked' : ''),
     onClick: () => { activateTab('schedule'); },
   },
     el('div', { class: 'bracket-card-head' },
@@ -619,6 +663,22 @@ renderers.bracket = function() {
     '小组赛 → 八强 → 半决赛 → 冠亚军决赛 + 3-4 名争夺。比赛结果确定后会自动填入。'
   ));
 
+  // 各阶段当前解锁状态
+  const qfStatus     = bracketStageStatus('qf', k);
+  const sfStatus     = bracketStageStatus('sf', k);
+  const finalStatus  = bracketStageStatus('final', k);
+  const thirtyStatus = bracketStageStatus('thirty', k);
+
+  // 顶部汇总：当前到哪个阶段
+  const summary = (() => {
+    if (finalStatus.state === 'done') return '🏆 比赛已全部结束';
+    if (finalStatus.state === 'live' || sfStatus.state === 'done') return '🏆 决赛阶段进行中';
+    if (sfStatus.state === 'live' || qfStatus.state === 'done') return '🎯 半决赛阶段';
+    if (qfStatus.state === 'live') return '⚔ 八强阶段';
+    return '🔒 小组赛进行中，淘汰赛对阵尚未揭晓';
+  })();
+  panel.appendChild(el('div', { class: 'bracket-summary' }, summary));
+
   // 列布局：QF（4 场，左右分列） / SF（2 场） / Final（1 场） / 3-4（1 场）
   const wrap = el('div', { class: 'bracket-wrap' });
 
@@ -631,25 +691,25 @@ renderers.bracket = function() {
   // 桌面端：5 列 = QF 左 | SF 左 | 决赛中央（含 3-4）| SF 右 | QF 右
   // 移动端：堆叠
   wrap.appendChild(el('div', { class: 'bracket-col bracket-col-qf' },
-    el('div', { class: 'bracket-col-label' }, '八强 · 上半区'),
+    bracketColLabel('八强 · 上半区', { state: qfStatus.state, hint: qfStatus.state === 'locked' ? qfStatus.hint : null }),
     ...qfLeft.map(m => bracketCard(m, { tag: '八强' })),
   ));
   wrap.appendChild(el('div', { class: 'bracket-col bracket-col-sf' },
-    el('div', { class: 'bracket-col-label' }, '半决赛'),
+    bracketColLabel('半决赛', { state: sfStatus.state, hint: sfStatus.state === 'locked' ? sfStatus.hint : null }),
     ...sfLeft.map(m => bracketCard(m, { tag: '半决赛' })),
   ));
   wrap.appendChild(el('div', { class: 'bracket-col bracket-col-final' },
-    el('div', { class: 'bracket-col-label trophy' }, '🏆 冠亚军'),
+    bracketColLabel('🏆 冠亚军', { state: finalStatus.state, modifier: 'trophy', hint: finalStatus.state === 'locked' ? finalStatus.hint : null }),
     ...k.final.map(m => bracketCard(m, { tag: '决赛', featured: true })),
-    k.thirty.length ? el('div', { class: 'bracket-col-label third' }, '🥉 3-4 名') : null,
+    k.thirty.length ? bracketColLabel('🥉 3-4 名', { state: thirtyStatus.state, modifier: 'third', hint: thirtyStatus.state === 'locked' ? thirtyStatus.hint : null }) : null,
     ...k.thirty.map(m => bracketCard(m, { tag: '3-4 名' })),
   ));
   wrap.appendChild(el('div', { class: 'bracket-col bracket-col-sf' },
-    el('div', { class: 'bracket-col-label' }, '半决赛'),
+    bracketColLabel('半决赛', { state: sfStatus.state, hint: sfStatus.state === 'locked' ? sfStatus.hint : null }),
     ...sfRight.map(m => bracketCard(m, { tag: '半决赛' })),
   ));
   wrap.appendChild(el('div', { class: 'bracket-col bracket-col-qf' },
-    el('div', { class: 'bracket-col-label' }, '八强 · 下半区'),
+    bracketColLabel('八强 · 下半区', { state: qfStatus.state, hint: qfStatus.state === 'locked' ? qfStatus.hint : null }),
     ...qfRight.map(m => bracketCard(m, { tag: '八强' })),
   ));
 
