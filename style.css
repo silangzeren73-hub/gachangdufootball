@@ -16,6 +16,10 @@
   --radius: 12px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
   --shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  /* 阿若博巴品牌色（赞助商辅助色） */
+  --sponsor-red: #C8201F;
+  --sponsor-red-dark: #8B0000;
+  --sponsor-cream: #FAF7F2;
 }
 
 html, body {
@@ -766,10 +770,198 @@ input, select, textarea { font-family: inherit; }
 }
 .admin-badge button:hover { background: rgba(255, 255, 255, 0.28); }
 
+/* ===== Sponsor: Top strip (位置 ①) ===== */
+.sponsor-strip {
+  background: var(--sponsor-cream);
+  border-bottom: 2px solid var(--sponsor-red);
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + 56px);
+  z-index: 41;
+}
+.sponsor-strip-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.sponsor-strip-label {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(0,0,0,0.12);
+  padding-right: 12px;
+  line-height: 1.1;
+}
+.sponsor-strip-cn {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.sponsor-strip-en {
+  font-size: 9px;
+  color: var(--sponsor-red);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-top: 2px;
+}
+.sponsor-strip-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.sponsor-strip-logo {
+  height: 28px;
+  width: auto;
+  flex-shrink: 0;
+}
+.sponsor-strip-slogan {
+  font-size: 12px;
+  color: #2a1a18;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 让 tab-bar 在 sponsor-strip 下方继续粘性 */
+.sponsor-strip + .tab-bar {
+  top: calc(env(safe-area-inset-top) + 56px + 46px);
+}
+
+/* ===== Sponsor: "X 呈现 / 标题" 前置行 (位置 ②) ===== */
+.sponsor-presents {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 18px 2px 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.sponsor-presents-prefix {
+  font-size: 11px;
+  color: var(--sponsor-red);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.sponsor-presents-bar {
+  flex: 0 0 16px;
+  height: 1px;
+  background: var(--sponsor-red);
+  opacity: 0.4;
+}
+.sponsor-presents-title {
+  font-size: 14px;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+/* ===== Sponsor: Empty-state hero (位置 ③) ===== */
+.sponsor-hero {
+  background: radial-gradient(ellipse at top, #2d0a0a 0%, #0d0303 70%);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  text-align: center;
+  color: #f4ece5;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.sponsor-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(200,32,31,0.18) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(200,32,31,0.10) 0%, transparent 60%);
+  pointer-events: none;
+}
+.sponsor-hero > * {
+  position: relative;
+  z-index: 1;
+}
+.sponsor-hero-logo {
+  height: 56px;
+  width: auto;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  margin-bottom: 14px;
+}
+.sponsor-hero-presents {
+  font-size: 11px;
+  color: rgba(244,236,229,0.7);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sponsor-hero-tibetan {
+  font-size: 14px;
+  color: rgba(244,236,229,0.85);
+  margin-bottom: 4px;
+  line-height: 1.6;
+  font-family: "Noto Sans Tibetan", "Microsoft Himalaya", "Kailasa", -apple-system, sans-serif;
+}
+.sponsor-hero-slogan {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.04em;
+  margin-bottom: 18px;
+}
+.sponsor-hero-divider {
+  width: 40px;
+  height: 2px;
+  background: var(--sponsor-red);
+  margin: 0 auto 14px;
+  opacity: 0.85;
+}
+.sponsor-hero-center {
+  font-size: 14px;
+  color: rgba(244,236,229,0.65);
+  letter-spacing: 0.06em;
+}
+
+/* ===== Sponsor: Section bottom strip (位置 ⑤) ===== */
+.sponsor-section-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 4px 18px;
+}
+.sponsor-section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--sponsor-red) 30%, var(--sponsor-red) 70%, transparent);
+  opacity: 0.35;
+}
+.sponsor-section-text {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ===== Desktop tweaks ===== */
 @media (min-width: 720px) {
   .modal-backdrop { align-items: center; }
   .modal-card { border-radius: 16px; max-height: 80vh; }
   .app-header { min-height: 60px; }
   .app-title h1 { font-size: 18px; }
+}
+
+/* ===== Narrow phones: tighten sponsor strip ===== */
+@media (max-width: 360px) {
+  .sponsor-strip-label { padding-right: 8px; }
+  .sponsor-strip-cn { font-size: 10px; }
+  .sponsor-strip-en { font-size: 8px; }
+  .sponsor-strip-logo { height: 24px; }
+  .sponsor-strip-slogan { font-size: 11px; }
 }

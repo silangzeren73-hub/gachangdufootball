@@ -2361,6 +2361,21 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779376696,
-  "updatedAt": "2026-05-22 13:18"
+  "dataVersion": 1779480122,
+  "updatedAt": "2026-05-22 20:02",
+  "sponsors": [
+    {
+      "id": "aruobaba",
+      "name": "阿若博巴",
+      "nameTibetan": "ཨ་རོགས་བོད་པ།",
+      "level": "title",
+      "labelCn": "冠名",
+      "labelEn": "TITLE SPONSOR",
+      "logo": "logos/sponsors/aruobaba.png",
+      "slogan": "阿若博巴 · 为高原热血时刻干杯",
+      "sloganTibetan": "ཨ་རོགས་བོད་པ། མཐོ་སྒང་གི་ཁྲག་རྩ་འཁོལ་བའི་དུས་བཟང་ལ་སྐྱེམས་ཆང་འདེགས།",
+      "brandColor": "#C8201F",
+      "brandColorDark": "#8B0000"
+    }
+  ]
 }

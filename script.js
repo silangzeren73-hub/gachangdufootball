@@ -80,13 +80,14 @@ function loadShootState() {
   return {};
 }
 function emptyState() {
-  return { version: 1, teams: [], matches: [], analyses: [] };
+  return { version: 1, teams: [], matches: [], analyses: [], sponsors: [] };
 }
 function normalizeState(s) {
   s = s || {};
   s.teams = Array.isArray(s.teams) ? s.teams : [];
   s.matches = Array.isArray(s.matches) ? s.matches : [];
   s.analyses = Array.isArray(s.analyses) ? s.analyses : [];
+  s.sponsors = Array.isArray(s.sponsors) ? s.sponsors : [];
   s.dataVersion = s.dataVersion || 0;
   s.updatedAt = s.updatedAt || '';
   return s;
@@ -99,6 +100,70 @@ function saveShoot() {
 }
 function uid(prefix) {
   return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+/* ===== Sponsor helpers ===== */
+function getTitleSponsor() {
+  return (state.sponsors || []).find(s => s.level === 'title') || (state.sponsors || [])[0] || null;
+}
+function levelLabel(level) {
+  return ({ title: '冠名', partner: '合作伙伴', support: '支持单位', thanks: '特别鸣谢' })[level] || '合作伙伴';
+}
+function levelLabelEn(level) {
+  return ({ title: 'TITLE SPONSOR', partner: 'OFFICIAL PARTNER', support: 'SUPPORTING PARTNER', thanks: 'SPECIAL THANKS' })[level] || 'OFFICIAL PARTNER';
+}
+function renderTopSponsorStrip() {
+  const strip = document.getElementById('sponsorStrip');
+  if (!strip) return;
+  const s = getTitleSponsor();
+  if (!s) { strip.hidden = true; return; }
+  strip.hidden = false;
+  clear(strip);
+  strip.appendChild(el('div', { class: 'sponsor-strip-inner' },
+    el('div', { class: 'sponsor-strip-label' },
+      el('span', { class: 'sponsor-strip-cn' }, '本届赛事' + levelLabel(s.level)),
+      el('span', { class: 'sponsor-strip-en' }, levelLabelEn(s.level)),
+    ),
+    el('div', { class: 'sponsor-strip-brand' },
+      s.logo ? el('img', { src: s.logo, alt: s.name, class: 'sponsor-strip-logo' }) : null,
+      s.slogan ? el('span', { class: 'sponsor-strip-slogan' }, s.slogan) : null,
+    ),
+  ));
+}
+function sponsorPresentsHeading(text) {
+  // 用作"X 呈现 / 今日赛程"这种小标题前置行
+  const s = getTitleSponsor();
+  if (!s) return el('div', { class: 'section-sub' }, text);
+  return el('div', { class: 'sponsor-presents' },
+    el('span', { class: 'sponsor-presents-prefix' }, s.name + ' 呈现'),
+    el('span', { class: 'sponsor-presents-bar' }),
+    el('span', { class: 'sponsor-presents-title' }, text),
+  );
+}
+function sponsorEmptyHero(centerText) {
+  // 空白状态用的深色 hero
+  const s = getTitleSponsor();
+  if (!s) {
+    return el('div', { class: 'empty' }, el('p', null, centerText || '暂无内容'));
+  }
+  return el('div', { class: 'sponsor-hero' },
+    s.logo ? el('img', { src: s.logo, alt: s.name, class: 'sponsor-hero-logo' }) : null,
+    el('div', { class: 'sponsor-hero-presents' }, s.name + ' 呈现'),
+    s.sloganTibetan ? el('div', { class: 'sponsor-hero-tibetan', lang: 'bo' }, s.sloganTibetan) : null,
+    s.slogan ? el('div', { class: 'sponsor-hero-slogan' }, s.slogan) : null,
+    el('div', { class: 'sponsor-hero-divider' }),
+    el('div', { class: 'sponsor-hero-center' }, centerText || ''),
+  );
+}
+function sponsorSectionStrip() {
+  // 比赛卡片区域结尾的窄条
+  const s = getTitleSponsor();
+  if (!s) return null;
+  return el('div', { class: 'sponsor-section-strip' },
+    el('span', { class: 'sponsor-section-line' }),
+    el('span', { class: 'sponsor-section-text' }, '本届赛事' + levelLabel(s.level) + '：' + s.name),
+    el('span', { class: 'sponsor-section-line' }),
+  );
 }
 
 /* ===== Utils ===== */
@@ -225,6 +290,7 @@ function activateTab(name) {
 }
 
 function renderAll() {
+  renderTopSponsorStrip();
   Object.values(renderers).forEach(fn => { try { fn(); } catch (_) {} });
 }
 
@@ -326,14 +392,18 @@ renderers.today = function() {
     ),
   ));
 
-  panel.appendChild(el('div', { class: 'section-sub' }, '今日赛程'));
+  panel.appendChild(sponsorPresentsHeading('今日赛程'));
   if (todayMatches.length === 0) {
-    panel.appendChild(el('div', { class: 'empty' },
-      el('p', null, '今天没有比赛'),
-      isAdmin ? el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 安排一场') : null,
-    ));
+    panel.appendChild(sponsorEmptyHero('今天没有比赛'));
+    if (isAdmin) {
+      panel.appendChild(el('div', { class: 'btn-row', style: 'justify-content:center;margin-top:10px;' },
+        el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 安排一场'),
+      ));
+    }
   } else {
     todayMatches.forEach(m => panel.appendChild(matchCard(m)));
+    const strip = sponsorSectionStrip();
+    if (strip) panel.appendChild(strip);
   }
 
   panel.appendChild(el('div', { class: 'section-sub' }, '快速入口'));
@@ -365,10 +435,12 @@ renderers.schedule = function() {
   ));
 
   if (state.matches.length === 0) {
-    panel.appendChild(el('div', { class: 'empty' },
-      el('p', null, '还没有比赛'),
-      isAdmin ? el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 新建比赛') : null,
-    ));
+    panel.appendChild(sponsorEmptyHero('还没有比赛'));
+    if (isAdmin) {
+      panel.appendChild(el('div', { class: 'btn-row', style: 'justify-content:center;margin-top:10px;' },
+        el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 新建比赛'),
+      ));
+    }
     return;
   }
 
@@ -377,10 +449,18 @@ renderers.schedule = function() {
     const key = m.datetime ? new Date(m.datetime).toLocaleDateString('zh-CN') : '未排期';
     (grouped[key] = grouped[key] || []).push(m);
   });
-  Object.keys(grouped).forEach(date => {
+  const dateKeys = Object.keys(grouped);
+  dateKeys.forEach((date, idx) => {
     panel.appendChild(el('div', { class: 'section-sub' }, date));
     grouped[date].forEach(m => panel.appendChild(matchCard(m)));
+    // 每天结束后插入冠名条带（最后一天不重复）
+    if (idx < dateKeys.length - 1) {
+      const strip = sponsorSectionStrip();
+      if (strip) panel.appendChild(strip);
+    }
   });
+  const finalStrip = sponsorSectionStrip();
+  if (finalStrip) panel.appendChild(finalStrip);
 };
 
 function openMatchForm(matchId) {
@@ -1330,6 +1410,24 @@ function focusReport(matchId) {
   }, 30);
 }
 
+function sponsorReportFooter(tpl) {
+  const s = getTitleSponsor();
+  if (!s) return [];
+  if (tpl === 'douyin') {
+    return ['', '本场由 ' + s.name + ' 冠名呈现 🍻', '#' + s.name];
+  }
+  if (tpl === 'wechat') {
+    return ['', '——本场由 ' + s.name + ' 冠名呈现 · ' + (s.slogan || '')];
+  }
+  if (tpl === 'article') {
+    return ['', '---', '', `> 本场比赛由 **${s.name}** 冠名呈现。`, '> ' + (s.slogan || '')];
+  }
+  // official 默认
+  const lines = ['', '——————————', `【本场冠名】${s.name}`];
+  if (s.slogan) lines.push(s.slogan);
+  return lines;
+}
+
 function buildReport(m, tpl) {
   const sport = SPORTS[m.sport] || SPORTS.football;
   const home = getTeam(m.homeId), away = getTeam(m.awayId);
@@ -1340,6 +1438,7 @@ function buildReport(m, tpl) {
   const awayName = away ? away.name : '客队';
   const goals = (m.events || []).filter(e => e.type === 'goal');
   const keyEvents = (m.events || []).filter(e => ['red','yellow','three','block','save','note'].includes(e.type));
+  const sponsorLines = sponsorReportFooter(tpl);
 
   if (tpl === 'official') {
     const lines = [];
@@ -1368,6 +1467,7 @@ function buildReport(m, tpl) {
     }
     if (m.mvp) { lines.push(''); lines.push(`【MVP】${m.mvp}`); }
     if (m.notes) { lines.push(''); lines.push('【复盘】' + m.notes); }
+    sponsorLines.forEach(l => lines.push(l));
     return lines.join('\n');
   }
 
@@ -1380,6 +1480,7 @@ function buildReport(m, tpl) {
     if (goals.length) lines.push(`关键球：${goals.map(g => g.player).slice(0,3).join(' / ')}`);
     lines.push('');
     lines.push('#县城足球 #基层联赛 #' + (home?.region || '县城') + ' #' + homeName + ' #' + awayName);
+    sponsorLines.forEach(l => lines.push(l));
     return lines.join('\n');
   }
 
@@ -1391,6 +1492,7 @@ function buildReport(m, tpl) {
       m.notes ? m.notes : '',
       '现场氛围拉满，下一场继续来 🔥',
     ].filter(Boolean);
+    sponsorLines.forEach(l => lines.push(l));
     return lines.join('\n');
   }
 
@@ -1408,6 +1510,7 @@ function buildReport(m, tpl) {
     if (m.notes) { lines.push(''); lines.push('**赛后复盘**'); lines.push(m.notes); }
     lines.push('');
     lines.push('下场比赛见。');
+    sponsorLines.forEach(l => lines.push(l));
     return lines.join('\n');
   }
   return '';
