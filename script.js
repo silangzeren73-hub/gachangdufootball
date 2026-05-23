@@ -612,6 +612,19 @@ renderers.today = function() {
     if (strip) panel.appendChild(strip);
   }
 
+  // Poster generator: show button if there's any day with finished matches recently
+  const posterDate = mostRecentMatchDate();
+  if (posterDate) {
+    const ds = posterDate.toLocaleDateString('zh-CN');
+    panel.appendChild(el('div', { class: 'card poster-cta' },
+      el('div', null,
+        el('div', { class: 'poster-cta-title' }, '📸 一键生成朋友圈图'),
+        el('div', { class: 'poster-cta-sub' }, ds + ' 赛果 · 含队标 / 比分 / 二维码 / 阿若博巴'),
+      ),
+      el('button', { class: 'btn accent', onClick: () => openDailyPoster(posterDate) }, '生成'),
+    ));
+  }
+
   panel.appendChild(el('div', { class: 'section-sub' }, '快速入口'));
   panel.appendChild(el('div', { class: 'card' },
     el('div', { class: 'btn-row' },
@@ -2015,6 +2028,170 @@ function buildReport(m, tpl) {
     return lines.join('\n');
   }
   return '';
+}
+
+/* ===== Daily poster (朋友圈图) ===== */
+function mostRecentMatchDate() {
+  const finishedDates = state.matches
+    .filter(m => (m.status === 'finished' || m.status === 'forfeit') && m.datetime)
+    .map(m => m.datetime.slice(0, 10));
+  if (finishedDates.length === 0) return null;
+  finishedDates.sort();
+  const last = finishedDates[finishedDates.length - 1];
+  return new Date(last + 'T12:00');
+}
+
+function buildPosterDOM(date, matches) {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const wd = ['日','一','二','三','四','五','六'][date.getDay()];
+
+  const root = el('div', { class: 'poster-root' });
+
+  root.appendChild(el('div', { class: 'poster-header' },
+    el('div', { class: 'poster-emoji' }, '⚽'),
+    el('div', { class: 'poster-title-wrap' },
+      el('div', { class: 'poster-title' }, '昌都市第二届全民运动会'),
+      el('div', { class: 'poster-subtitle' }, '足球选拔赛 · 暨体彩杯足球赛'),
+    ),
+  ));
+
+  root.appendChild(el('div', { class: 'poster-date-band' },
+    el('div', { class: 'poster-date-main' },
+      el('span', { class: 'poster-month' }, month + '月'),
+      el('span', { class: 'poster-day' }, String(day)),
+      el('span', { class: 'poster-day-label' }, '日 赛果'),
+    ),
+    el('div', { class: 'poster-weekday' }, '星期' + wd),
+  ));
+
+  const rounds = [...new Set(matches.map(m => m.round || '').filter(Boolean))];
+  if (rounds.length) {
+    root.appendChild(el('div', { class: 'poster-round-row' },
+      ...rounds.map(r => el('span', { class: 'poster-round-chip' }, r)),
+    ));
+  }
+
+  const list = el('div', { class: 'poster-matches' });
+  matches.forEach(m => {
+    const home = getTeam(m.homeId);
+    const away = getTeam(m.awayId);
+    const hs = m.homeScore || 0;
+    const as = m.awayScore || 0;
+    const homeWin = hs > as, awayWin = as > hs;
+    const row = el('div', { class: 'poster-match' },
+      el('div', { class: 'poster-team home' + (homeWin ? ' win' : '') },
+        home && home.logoImage ? el('img', { class: 'poster-team-logo', src: home.logoImage, referrerpolicy: 'no-referrer' }) : el('div', { class: 'poster-team-logo placeholder' }, '⚽'),
+        el('div', { class: 'poster-team-name' }, home ? (home.shortName || home.name) : '主队'),
+      ),
+      el('div', { class: 'poster-score' },
+        el('span', { class: 'poster-score-num' + (homeWin ? ' win' : '') }, String(hs)),
+        el('span', { class: 'poster-score-sep' }, ':'),
+        el('span', { class: 'poster-score-num' + (awayWin ? ' win' : '') }, String(as)),
+      ),
+      el('div', { class: 'poster-team away' + (awayWin ? ' win' : '') },
+        el('div', { class: 'poster-team-name' }, away ? (away.shortName || away.name) : '客队'),
+        away && away.logoImage ? el('img', { class: 'poster-team-logo', src: away.logoImage, referrerpolicy: 'no-referrer' }) : el('div', { class: 'poster-team-logo placeholder' }, '⚽'),
+      ),
+    );
+    list.appendChild(row);
+  });
+  root.appendChild(list);
+
+  root.appendChild(el('div', { class: 'poster-sponsor-block' },
+    el('div', { class: 'poster-sponsor-text' },
+      el('div', { class: 'poster-sponsor-label' }, '本届赛事冠名'),
+      el('div', { class: 'poster-sponsor-name' }, '阿若博巴'),
+    ),
+    el('img', { class: 'poster-sponsor-logo', src: 'logos/sponsors/aruobaba.png', referrerpolicy: 'no-referrer' }),
+  ));
+
+  const qrImg = el('img', { class: 'poster-qr', alt: 'QR' });
+  root.appendChild(el('div', { class: 'poster-footer' },
+    el('div', { class: 'poster-footer-text' },
+      el('div', { class: 'poster-url' }, 'chamdosport.com'),
+      el('div', { class: 'poster-venue' }, '津昌体育场（马草坝 · ',
+        el('span', { class: 'tibetan', lang: 'bo' }, 'རྟ་རྩྭ་ཐང་།'), '）'),
+    ),
+    qrImg,
+  ));
+
+  return { root, qrImg };
+}
+
+async function openDailyPoster(date) {
+  const matches = sortMatches(state.matches.filter(m =>
+    isSameDay(m.datetime, date) && (m.status === 'finished' || m.status === 'forfeit')
+  ));
+  if (matches.length === 0) {
+    return toast('当天还没有结束的比赛');
+  }
+  if (typeof html2canvas === 'undefined' || typeof QRCode === 'undefined') {
+    return toast('海报组件加载中，稍等 2 秒再试');
+  }
+
+  toast('生成中...');
+
+  const offscreen = document.createElement('div');
+  offscreen.className = 'poster-offscreen';
+  const { root, qrImg } = buildPosterDOM(date, matches);
+  offscreen.appendChild(root);
+  document.body.appendChild(offscreen);
+
+  try {
+    const qrDataUrl = await new Promise((resolve) => {
+      QRCode.toDataURL('https://chamdosport.com', { width: 240, margin: 1 }, (err, url) => {
+        resolve(err ? '' : url);
+      });
+    });
+    if (qrDataUrl) qrImg.src = qrDataUrl;
+
+    const allImgs = Array.from(root.querySelectorAll('img'));
+    await Promise.all(allImgs.map(img => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise(resolve => {
+        const done = () => resolve();
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+        setTimeout(done, 4000);
+      });
+    }));
+
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch (_) {}
+    }
+
+    const canvas = await html2canvas(root, {
+      width: 1080,
+      backgroundColor: null,
+      useCORS: true,
+      allowTaint: true,
+      scale: 1.5,
+      logging: false,
+    });
+
+    document.body.removeChild(offscreen);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    showPosterModal(dataUrl, date);
+  } catch (e) {
+    if (offscreen.parentNode) document.body.removeChild(offscreen);
+    toast('海报生成失败：' + (e && e.message || e));
+  }
+}
+
+function showPosterModal(dataUrl, date) {
+  const ds = date.toISOString().slice(0, 10);
+  const img = el('img', { src: dataUrl, class: 'poster-preview-img' });
+  const body = el('div', { class: 'poster-modal-body' },
+    el('div', { class: 'poster-hint' }, '👆 长按图片即可保存到相册 · 或点下方按钮下载'),
+    img,
+    el('div', { class: 'btn-row', style: 'margin-top: 14px; flex-direction: column; gap: 8px;' },
+      el('a', { class: 'btn block', href: dataUrl, download: `昌都足球-${ds}-赛果.png` }, '📥 下载 PNG'),
+      el('button', { class: 'btn block ghost', onClick: closeModal }, '关闭'),
+    ),
+  );
+  openModal('今日朋友圈图', body);
 }
 
 /* ===== Data import / export ===== */
