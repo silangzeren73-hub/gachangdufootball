@@ -433,34 +433,144 @@ input, select, textarea { font-family: inherit; }
 }
 .form-actions .btn { flex: 1; }
 
-/* ===== Rating slider ===== */
-.rating-block { margin-bottom: 14px; }
-.rating-block h4 {
-  margin: 0 0 8px;
+/* ===== Match card discipline badges ===== */
+.match-cards {
+  display: flex;
+  gap: 6px;
+  padding: 4px 12px 0;
+  flex-wrap: wrap;
+}
+.card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.card-badge.yellow { background: #fef3c7; color: #92400e; }
+.card-badge.red { background: #fecaca; color: #991b1b; }
+
+/* ===== Discipline tab ===== */
+.discipline-banner {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-left: 4px solid var(--danger);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.discipline-banner-title {
+  font-weight: 700;
+  color: var(--danger);
   font-size: 14px;
+  margin-bottom: 6px;
+}
+.discipline-banner-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.discipline-banner-list li { color: var(--text); }
+.discipline-reason {
+  color: var(--muted);
+  font-size: 12px;
+}
+.discipline-day {
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.discipline-day-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--primary);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--border);
+}
+.discipline-row {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+  align-items: flex-start;
+}
+.discipline-row:last-child { border-bottom: none; }
+.discipline-team {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 56px;
   color: var(--text);
 }
-.rating-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 12px;
+.discipline-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  flex: 1;
 }
-.rating-item {
+.discipline-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.discipline-tag.yellow { background: #fef3c7; color: #78350f; }
+.discipline-tag.red { background: #fecaca; color: #7f1d1d; font-weight: 600; }
+.rule-note {
+  font-size: 12px;
+  color: var(--muted);
   background: #f8fafc;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  line-height: 1.7;
 }
-.rating-item label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
+
+/* ===== Regulations tab ===== */
+.reg-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 720px) {
+  .reg-grid { grid-template-columns: 1fr 1fr; }
+}
+.reg-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  border-top: 3px solid var(--primary);
+}
+.reg-card h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
   color: var(--text);
-  margin-bottom: 4px;
 }
-.rating-item label span { color: var(--primary); font-weight: 600; }
-.rating-item input[type="range"] {
-  width: 100%;
-  accent-color: var(--primary);
+.reg-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.reg-card li {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  padding: 4px 0;
+  padding-left: 14px;
+  position: relative;
+}
+.reg-card li::before {
+  content: '·';
+  position: absolute;
+  left: 4px;
+  color: var(--primary);
+  font-weight: 700;
 }
 
 /* ===== Standings table ===== */
@@ -619,18 +729,6 @@ input, select, textarea { font-family: inherit; }
 }
 .story-text { font-size: 13px; line-height: 1.6; }
 
-/* ===== Insight result ===== */
-.insight-output {
-  background: #f8fafc;
-  border-left: 3px solid var(--primary);
-  padding: 12px 14px;
-  border-radius: 0 8px 8px 0;
-  font-size: 14px;
-  margin-top: 12px;
-  white-space: pre-wrap;
-  line-height: 1.7;
-}
-
 /* ===== Report tabs ===== */
 .report-tabs {
   display: flex;
@@ -666,45 +764,6 @@ input, select, textarea { font-family: inherit; }
   min-height: 200px;
   line-height: 1.7;
 }
-
-/* ===== Shoot list ===== */
-.shoot-section {
-  background: white;
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  box-shadow: var(--shadow-sm);
-}
-.shoot-section h4 {
-  font-size: 14px;
-  margin: 0 0 8px;
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.shoot-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.shoot-list li {
-  padding: 6px 0;
-  font-size: 14px;
-  border-bottom: 1px dashed var(--border);
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.shoot-list li:last-child { border-bottom: none; }
-.shoot-list input[type="checkbox"] {
-  margin-top: 4px;
-  accent-color: var(--primary);
-  width: 16px;
-  height: 16px;
-}
-.shoot-list li.done label { text-decoration: line-through; color: var(--muted); }
-.shoot-list label { flex: 1; cursor: pointer; }
 
 /* ===== Event log ===== */
 .event-log {

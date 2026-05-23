@@ -1890,7 +1890,10 @@
       "awayScore": 3,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "red", "team": "home", "playerNumber": "7", "playerName": "仁增多吉" },
+        { "type": "yellow", "team": "away", "playerNumber": "7", "playerName": "贡秋江措" }
+      ]
     },
     {
       "id": "m-002",
@@ -1905,7 +1908,11 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "11", "playerName": "向巴仁增" },
+        { "type": "yellow", "team": "home", "playerNumber": "17", "playerName": "丁增德勒" },
+        { "type": "yellow", "team": "home", "playerNumber": "5", "playerName": "扎西成培" }
+      ]
     },
     {
       "id": "m-003",
@@ -1920,7 +1927,14 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "3", "playerName": "洛桑它西" },
+        { "type": "yellow", "team": "home", "playerNumber": "6", "playerName": "加热杰" },
+        { "type": "yellow", "team": "home", "playerNumber": "7", "playerName": "巴桑次仁" },
+        { "type": "yellow", "team": "home", "playerNumber": "17", "playerName": "洛松丁达" },
+        { "type": "yellow", "team": "away", "playerNumber": "14", "playerName": "丁增曲扎" },
+        { "type": "yellow", "team": "away", "playerNumber": "5", "playerName": "洛松扎堆" }
+      ]
     },
     {
       "id": "m-004",
@@ -1935,7 +1949,9 @@
       "awayScore": 4,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "red", "team": "home", "playerNumber": "7", "playerName": "旦增次加" }
+      ]
     },
     {
       "id": "m-005",
@@ -1950,7 +1966,10 @@
       "awayScore": 2,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "10", "playerName": "扎西郎加" },
+        { "type": "yellow", "team": "home", "playerNumber": "11", "playerName": "索朗达吉" }
+      ]
     },
     {
       "id": "m-006",
@@ -1965,7 +1984,11 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "19", "playerName": "多吉伟色" },
+        { "type": "yellow", "team": "home", "playerNumber": "76", "playerName": "顿珠" },
+        { "type": "yellow", "team": "away", "playerNumber": "28", "playerName": "多多" }
+      ]
     },
     {
       "id": "m-007",
@@ -1995,7 +2018,9 @@
       "awayScore": 3,
       "mvp": "",
       "notes": "因类乌齐县禁赛，赛程调整",
-      "events": [],
+      "events": [
+        { "type": "yellow", "team": "away", "playerNumber": "10", "playerName": "加永" }
+      ],
       "rescheduled": true
     },
     {
@@ -2011,7 +2036,11 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "因类乌齐县禁赛，赛程调整",
-      "events": [],
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "4", "playerName": "曲达" },
+        { "type": "yellow", "team": "home", "playerNumber": "11", "playerName": "平措顿珠" },
+        { "type": "yellow", "team": "away", "playerNumber": "7", "playerName": "洛松雷丁" }
+      ],
       "rescheduled": true
     },
     {
@@ -2027,7 +2056,13 @@
       "awayScore": 2,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "18", "playerName": "白玛罗布" },
+        { "type": "yellow", "team": "away", "playerNumber": "30", "playerName": "旦增扎西" },
+        { "type": "yellow", "team": "away", "playerNumber": "7", "playerName": "五色尼玛" },
+        { "type": "yellow", "team": "away", "playerNumber": "17", "playerName": "旦巴达吉" },
+        { "type": "yellow", "team": "away", "playerNumber": "6", "playerName": "桑吉多吉" }
+      ]
     },
     {
       "id": "m-011",
@@ -2042,7 +2077,10 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "away", "playerNumber": "13", "playerName": "昂旺江措" },
+        { "type": "yellow", "team": "away", "playerNumber": "9", "playerName": "仁青罗布" }
+      ]
     },
     {
       "id": "m-012",
@@ -2057,7 +2095,10 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "21", "playerName": "丹增赤来" },
+        { "type": "yellow", "team": "away", "playerNumber": "66", "playerName": "扎西多吉" }
+      ]
     },
     {
       "id": "m-013",
@@ -2072,7 +2113,12 @@
       "awayScore": 2,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "9", "playerName": "洛松巴邓" },
+        { "type": "yellow", "team": "home", "playerNumber": "15", "playerName": "扎西巴邓" },
+        { "type": "yellow", "team": "home", "playerNumber": "7", "playerName": "曲登" },
+        { "type": "yellow", "team": "away", "playerNumber": "45", "playerName": "洛松巴邓" }
+      ]
     },
     {
       "id": "m-014",
@@ -2087,7 +2133,12 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        { "type": "yellow", "team": "home", "playerNumber": "10", "playerName": "仁青江措" },
+        { "type": "yellow", "team": "away", "playerNumber": "10", "playerName": "顿珠江村" },
+        { "type": "yellow", "team": "away", "playerNumber": "21", "playerName": "江永洛布" },
+        { "type": "yellow", "team": "away", "playerNumber": "14", "playerName": "嘎松朗加" }
+      ]
     },
     {
       "id": "m-015",
@@ -2361,8 +2412,8 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779548439,
-  "updatedAt": "2026-05-23 22:30",
+  "dataVersion": 1779550671,
+  "updatedAt": "2026-05-23 23:10",
   "sponsors": [
     {
       "id": "aruobaba",

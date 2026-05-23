@@ -3,7 +3,6 @@
    ============================================ */
 
 const STORAGE_KEY = 'cy-sports-workstation-v1';
-const SHOOT_KEY = 'cy-sports-shoot-v1';
 
 const SPORTS = {
   football: { label: '足球', emoji: '⚽', win: 3, draw: 1, loss: 0 },
@@ -23,17 +22,7 @@ const EVENT_TYPES = {
   note:   { label: '关键时刻', icon: '📌' },
 };
 
-const RATING_KEYS = [
-  { key: 'stamina',   label: '体能' },
-  { key: 'core',      label: '核心球员' },
-  { key: 'chemistry', label: '磨合度' },
-  { key: 'bench',     label: '替补深度' },
-  { key: 'venue',     label: '场地适应' },
-  { key: 'morale',    label: '战意' },
-];
-
 let state = loadState();
-let shootState = loadShootState();
 
 /* ===== State ===== */
 function loadState() {
@@ -43,21 +32,13 @@ function loadState() {
   } catch (_) {}
   return emptyState();
 }
-function loadShootState() {
-  try {
-    const raw = localStorage.getItem(SHOOT_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (_) {}
-  return {};
-}
 function emptyState() {
-  return { version: 1, teams: [], matches: [], analyses: [], sponsors: [] };
+  return { version: 1, teams: [], matches: [], sponsors: [] };
 }
 function normalizeState(s) {
   s = s || {};
   s.teams = Array.isArray(s.teams) ? s.teams : [];
   s.matches = Array.isArray(s.matches) ? s.matches : [];
-  s.analyses = Array.isArray(s.analyses) ? s.analyses : [];
   s.sponsors = Array.isArray(s.sponsors) ? s.sponsors : [];
   s.dataVersion = s.dataVersion || 0;
   s.updatedAt = s.updatedAt || '';
@@ -65,9 +46,6 @@ function normalizeState(s) {
 }
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-function saveShoot() {
-  localStorage.setItem(SHOOT_KEY, JSON.stringify(shootState));
 }
 function uid(prefix) {
   return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -326,7 +304,7 @@ function copyText(text) {
 function confirmDel(msg) { return window.confirm(msg || '确定删除？'); }
 
 /* ===== Tabs ===== */
-const TABS = ['today','schedule','bracket','teams','players','standings','topscorers','insights','reports','shootlist','data'];
+const TABS = ['today','schedule','bracket','teams','players','standings','topscorers','discipline','reports','regulations','data'];
 const renderers = {};
 
 function runRenderer(name) {
@@ -397,6 +375,14 @@ function matchCard(m) {
     ? el('div', { class: 'match-score vs' }, 'VS')
     : el('div', { class: 'match-score' + (m.status === 'forfeit' ? ' forfeit' : '') }, `${m.homeScore ?? 0} : ${m.awayScore ?? 0}`);
 
+  const cards = countMatchCards(m);
+  const cardBadges = (cards.yellow + cards.red > 0)
+    ? el('div', { class: 'match-cards' },
+        cards.yellow > 0 ? el('span', { class: 'card-badge yellow' }, '🟨 ' + cards.yellow) : null,
+        cards.red > 0 ? el('span', { class: 'card-badge red' }, '🟥 ' + cards.red) : null,
+      )
+    : null;
+
   return el('div', { class: 'match-card' },
     el('div', { class: 'match-meta' },
       el('div', null,
@@ -425,14 +411,149 @@ function matchCard(m) {
         ),
       ),
     ),
+    cardBadges,
     (m.status === 'forfeit' && m.notes) ? el('div', { class: 'forfeit-note' }, '⚠ ' + m.notes) : null,
     el('div', { class: 'match-actions' },
       el('button', { class: 'btn sm', onClick: () => openScoreEntry(m.id) }, '比分'),
       el('button', { class: 'btn sm ghost', onClick: () => openMatchForm(m.id) }, '编辑'),
-      el('button', { class: 'btn sm ghost', onClick: () => { activateTab('insights'); setTimeout(() => focusInsight(m.id), 50); } }, '看点'),
       el('button', { class: 'btn sm ghost', onClick: () => { activateTab('reports'); setTimeout(() => focusReport(m.id), 50); } }, '战报'),
     ),
   );
+}
+
+/* ===== Discipline helpers ===== */
+function countMatchCards(m) {
+  const events = Array.isArray(m.events) ? m.events : [];
+  let yellow = 0, red = 0;
+  events.forEach(e => {
+    if (e.type === 'yellow') yellow++;
+    else if (e.type === 'red') red++;
+  });
+  return { yellow, red };
+}
+
+function teamCardStats(teamId) {
+  let yellow = 0, red = 0;
+  state.matches.forEach(m => {
+    if (m.status !== 'finished' && m.status !== 'forfeit') return;
+    const events = Array.isArray(m.events) ? m.events : [];
+    events.forEach(e => {
+      const side = e.team === 'home' ? m.homeId : (e.team === 'away' ? m.awayId : null);
+      if (side !== teamId) return;
+      if (e.type === 'yellow') yellow++;
+      else if (e.type === 'red') red++;
+    });
+  });
+  return { yellow, red };
+}
+
+// Returns array of suspensions for next-match display:
+// [{ teamId, name, number, reasons: ['累计 2 黄', '红牌'] }]
+function computeUpcomingSuspensions() {
+  // Walk all FINISHED matches in chronological order
+  const finished = state.matches
+    .filter(m => m.status === 'finished' || m.status === 'forfeit')
+    .slice()
+    .sort((a, b) => (a.datetime || '').localeCompare(b.datetime || ''));
+
+  // For each team, the count of finished matches played (used as "match index")
+  const teamMatchCount = {};
+  // playerKey -> { teamId, name, number, yellows: number, suspendedUntilTeamIdx: number, reasonStack: [] }
+  const tracker = {};
+
+  finished.forEach(m => {
+    teamMatchCount[m.homeId] = (teamMatchCount[m.homeId] || 0) + 1;
+    teamMatchCount[m.awayId] = (teamMatchCount[m.awayId] || 0) + 1;
+
+    const events = Array.isArray(m.events) ? m.events : [];
+    // First pass: group cards by player within this match
+    const perPlayer = {};
+    events.forEach(e => {
+      if (e.type !== 'yellow' && e.type !== 'red') return;
+      const teamId = e.team === 'home' ? m.homeId : (e.team === 'away' ? m.awayId : null);
+      if (!teamId) return;
+      const number = String(e.playerNumber || e.number || '').trim();
+      const name = (e.playerName || e.player || '').trim();
+      if (!name && !number) return;
+      const key = teamId + '|' + number + '|' + name;
+      if (!perPlayer[key]) perPlayer[key] = { teamId, name, number, yellows: 0, reds: 0 };
+      if (e.type === 'yellow') perPlayer[key].yellows++;
+      else perPlayer[key].reds++;
+    });
+
+    Object.entries(perPlayer).forEach(([key, info]) => {
+      if (!tracker[key]) tracker[key] = {
+        teamId: info.teamId, name: info.name, number: info.number,
+        yellows: 0, suspendNext: false, reasons: [],
+      };
+      const t = tracker[key];
+
+      // Rule 6: 1+1 yellow in same match = red, those 2 yellows don't count
+      if (info.yellows >= 2 && info.reds === 0) {
+        t.suspendNext = true;
+        t.reasons = ['同场 2 黄变红'];
+        // yellows don't accumulate
+      } else if (info.reds > 0) {
+        // Direct red (or red after a single yellow in same match)
+        t.suspendNext = true;
+        t.reasons = ['红牌'];
+        if (info.yellows > 0) {
+          // Rule 4: single yellow before red — that yellow accumulates
+          t.yellows += info.yellows;
+          if (t.yellows >= 2) t.reasons.push('累计 2 黄');
+        }
+      } else if (info.yellows > 0) {
+        // Just yellows this match
+        t.yellows += info.yellows;
+        if (t.yellows >= 2) {
+          t.suspendNext = true;
+          t.reasons = ['累计 2 黄'];
+        }
+      }
+    });
+  });
+
+  // For each tracked player who is "suspendNext", they serve in their team's NEXT match
+  // A simpler approach: just list players whose suspendNext === true and haven't yet served
+  // To "serve" the suspension, we'd need to track which match they sat out — but we don't have lineup data
+  // So we show all currently suspended players; the user can clear via data updates if needed
+  const list = [];
+  Object.values(tracker).forEach(t => {
+    if (t.suspendNext) {
+      list.push({
+        teamId: t.teamId, name: t.name, number: t.number,
+        reasons: t.reasons.length ? t.reasons : ['处罚'],
+        yellows: t.yellows,
+      });
+    }
+  });
+  return list;
+}
+
+// Returns daily breakdown of cards: [{ date, items: [{teamId, name, number, type}] }]
+function dailyDisciplineBreakdown() {
+  const byDate = {};
+  state.matches.forEach(m => {
+    if (m.status !== 'finished' && m.status !== 'forfeit') return;
+    const events = Array.isArray(m.events) ? m.events : [];
+    if (!events.length) return;
+    const date = (m.datetime || '').slice(0, 10);
+    if (!byDate[date]) byDate[date] = [];
+    events.forEach(e => {
+      if (e.type !== 'yellow' && e.type !== 'red') return;
+      const teamId = e.team === 'home' ? m.homeId : (e.team === 'away' ? m.awayId : null);
+      if (!teamId) return;
+      byDate[date].push({
+        teamId, type: e.type,
+        name: e.playerName || e.player || '',
+        number: e.playerNumber || e.number || '',
+        matchId: m.id,
+      });
+    });
+  });
+  return Object.entries(byDate)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, items]) => ({ date, items }));
 }
 
 /* ===== Today ===== */
@@ -473,10 +594,10 @@ renderers.today = function() {
   panel.appendChild(el('div', { class: 'section-sub' }, '快速入口'));
   panel.appendChild(el('div', { class: 'card' },
     el('div', { class: 'btn-row' },
-      el('button', { class: 'btn', onClick: () => activateTab('shootlist') }, '📷 拍摄清单'),
+      el('button', { class: 'btn', onClick: () => activateTab('discipline') }, '🟨 风纪'),
       el('button', { class: 'btn ghost', onClick: () => activateTab('standings') }, '📊 积分榜'),
       el('button', { class: 'btn ghost', onClick: () => activateTab('reports') }, '📝 战报'),
-      el('button', { class: 'btn ghost', onClick: () => activateTab('data') }, '💾 数据'),
+      el('button', { class: 'btn ghost', onClick: () => activateTab('regulations') }, '📜 规程'),
     ),
   ));
 
@@ -826,7 +947,6 @@ function openMatchForm(matchId) {
     isEdit ? el('button', { type: 'button', class: 'btn danger', onClick: () => {
       if (!confirmDel('确定删除该场比赛？')) return;
       state.matches = state.matches.filter(x => x.id !== m.id);
-      state.analyses = state.analyses.filter(a => a.matchId !== m.id);
       save(); closeModal(); renderAll(); toast('已删除');
     }}, '删除') : null,
     el('button', { type: 'button', class: 'btn ghost', onClick: closeModal }, '取消'),
@@ -1324,6 +1444,7 @@ function buildStandings(sport, teams) {
     team: t,
     games: 0, wins: 0, draws: 0, losses: 0,
     gf: 0, ga: 0, points: 0,
+    yellow: 0, red: 0,
   }));
   const byId = {};
   rows.forEach(r => (byId[r.team.id] = r));
@@ -1337,13 +1458,21 @@ function buildStandings(sport, teams) {
     if (hs > as) { h.wins++; a.losses++; h.points += SPORTS[sport].win; a.points += SPORTS[sport].loss; }
     else if (hs < as) { a.wins++; h.losses++; a.points += SPORTS[sport].win; h.points += SPORTS[sport].loss; }
     else { h.draws++; a.draws++; h.points += SPORTS[sport].draw; a.points += SPORTS[sport].draw; }
+    const events = Array.isArray(m.events) ? m.events : [];
+    events.forEach(e => {
+      const side = e.team === 'home' ? h : (e.team === 'away' ? a : null);
+      if (!side) return;
+      if (e.type === 'yellow') side.yellow++;
+      else if (e.type === 'red') side.red++;
+    });
   });
 
+  // 规程二十四(二)：积分 → 净胜球 → 总进球 → 红黄牌少者优先（红×3 + 黄×1 加权）
   rows.sort((x, y) =>
     y.points - x.points ||
     (y.gf - y.ga) - (x.gf - x.ga) ||
     y.gf - x.gf ||
-    y.wins - x.wins
+    (x.yellow + x.red * 3) - (y.yellow + y.red * 3)
   );
 
   const isBasket = sport === 'basketball';
@@ -1358,6 +1487,8 @@ function buildStandings(sport, teams) {
       el('th', null, isBasket ? '得分' : '进'),
       el('th', null, isBasket ? '失分' : '失'),
       el('th', null, '差'),
+      isBasket ? null : el('th', { title: '黄牌' }, '🟨'),
+      isBasket ? null : el('th', { title: '红牌' }, '🟥'),
       el('th', null, '积分'),
     )),
     el('tbody', null,
@@ -1371,6 +1502,8 @@ function buildStandings(sport, teams) {
         el('td', null, String(r.gf)),
         el('td', null, String(r.ga)),
         el('td', null, String(r.gf - r.ga)),
+        isBasket ? null : el('td', { class: 'muted' }, String(r.yellow)),
+        isBasket ? null : el('td', { class: 'muted' }, String(r.red)),
         el('td', null, el('strong', { style: 'color:var(--primary);' }, String(r.points))),
       )),
     ),
@@ -1483,157 +1616,205 @@ renderers.topscorers = function() {
   }
 };
 
-/* ===== G4 Insights ===== */
-renderers.insights = function() {
-  const panel = document.getElementById('tab-insights');
+/* ===== Discipline (风纪) ===== */
+renderers.discipline = function() {
+  const panel = document.getElementById('tab-discipline');
   clear(panel);
-  panel.appendChild(el('div', { class: 'section-head' },
-    el('h2', null, 'G4 赛前看点'),
+  panel.appendChild(el('div', { class: 'section-head' }, el('h2', null, '赛场风纪')));
+
+  // 1) Upcoming suspensions banner
+  const suspended = computeUpcomingSuspensions();
+  if (suspended.length > 0) {
+    const banner = el('div', { class: 'discipline-banner' });
+    banner.appendChild(el('div', { class: 'discipline-banner-title' }, '⚠ 下场停赛'));
+    const ul = el('ul', { class: 'discipline-banner-list' });
+    suspended.forEach(s => {
+      const t = getTeam(s.teamId);
+      ul.appendChild(el('li', null,
+        el('strong', null, t ? (t.shortName || t.name) : '—'),
+        ' #', s.number || '?', ' ',
+        el('span', null, s.name || '（未登记球员）'),
+        el('span', { class: 'discipline-reason' }, ' · ' + s.reasons.join(' / ')),
+      ));
+    });
+    banner.appendChild(ul);
+    panel.appendChild(banner);
+  }
+
+  // 2) Per-team accumulated cards
+  const teams = state.teams.filter(t => (t.sport || 'football') === 'football' && t.id !== 't-tba');
+  const teamStats = teams.map(t => ({ team: t, ...teamCardStats(t.id) }));
+  teamStats.sort((a, b) => (b.red * 3 + b.yellow) - (a.red * 3 + a.yellow));
+
+  panel.appendChild(el('div', { class: 'section-sub' }, '本届累计 · 按各队红黄牌数'));
+  const tbody = el('tbody', null,
+    ...teamStats.map((s, i) => el('tr', null,
+      el('td', null, String(i + 1)),
+      el('td', { class: 'team-name' }, teamLine(s.team)),
+      el('td', null, String(s.yellow)),
+      el('td', null, String(s.red)),
+      el('td', null, el('strong', null, String(s.yellow + s.red))),
+    )),
+  );
+  panel.appendChild(el('div', { class: 'standings-wrap' },
+    el('table', { class: 'standings-table' },
+      el('thead', null, el('tr', null,
+        el('th', null, '#'),
+        el('th', null, '队伍'),
+        el('th', null, '🟨'),
+        el('th', null, '🟥'),
+        el('th', null, '合计'),
+      )),
+      tbody,
+    ),
   ));
 
-  if (state.matches.length === 0) {
-    panel.appendChild(el('div', { class: 'empty' }, el('p', null, '先在「赛程」里安排一场比赛')));
-    return;
-  }
-
-  const upcoming = state.matches.filter(m => m.status !== 'finished');
-  const pool = upcoming.length ? upcoming : state.matches;
-  const matchSel = el('select', null,
-    ...sortMatches(pool).map(m =>
-      el('option', { value: m.id }, `${fmtDT(m.datetime)} · ${teamName(m.homeId)} vs ${teamName(m.awayId)}`))
-  );
-  panel.appendChild(el('div', { class: 'form-group' }, el('label', null, '选择比赛'), matchSel));
-
-  const editor = el('div');
-  panel.appendChild(editor);
-
-  function render(mId) {
-    clear(editor);
-    const m = getMatch(mId);
-    if (!m) return;
-    let an = state.analyses.find(a => a.matchId === mId);
-    if (!an) {
-      an = {
-        matchId: mId,
-        home: defaultRatings(),
-        away: defaultRatings(),
-        keyPoints: '',
-      };
-      state.analyses.push(an);
-    }
-
-    function ratingsBlock(label, teamId, side) {
-      const block = el('div', { class: 'rating-block' });
-      block.appendChild(el('h4', null, label + ' · ' + teamName(teamId)));
-      const grid = el('div', { class: 'rating-group' });
-      RATING_KEYS.forEach(({ key, label }) => {
-        const val = an[side][key] != null ? an[side][key] : 3;
-        const valSpan = el('span', null, String(val));
-        const range = el('input', { type: 'range', min: '1', max: '5', step: '1', value: String(val) });
-        range.addEventListener('input', () => {
-          an[side][key] = Number(range.value);
-          valSpan.textContent = range.value;
-          save();
-        });
-        grid.appendChild(el('div', { class: 'rating-item' },
-          el('label', null, label, valSpan),
-          range,
-        ));
-      });
-      block.appendChild(grid);
-      return block;
-    }
-
-    editor.appendChild(ratingsBlock('主队', m.homeId, 'home'));
-    editor.appendChild(ratingsBlock('客队', m.awayId, 'away'));
-
-    const ta = el('textarea', { placeholder: '人工补充看点 (可选)' }, an.keyPoints || '');
-    ta.addEventListener('change', () => { an.keyPoints = ta.value.trim(); save(); });
-    editor.appendChild(el('div', { class: 'form-group' }, el('label', null, '看点补充'), ta));
-
-    const out = el('div', { class: 'insight-output' });
-    function regen() {
-      out.textContent = renderInsight(m, an);
-    }
-    editor.appendChild(el('div', { class: 'btn-row' },
-      el('button', { class: 'btn', onClick: regen }, '🪄 生成看点'),
-      el('button', { class: 'btn ghost', onClick: () => copyText(out.textContent) }, '复制'),
-    ));
-    editor.appendChild(out);
-    regen();
-  }
-
-  matchSel.addEventListener('change', () => render(matchSel.value));
-  render(matchSel.value);
-
-  panel._setMatch = (id) => { matchSel.value = id; render(id); };
-};
-function defaultRatings() {
-  const o = {};
-  RATING_KEYS.forEach(k => (o[k.key] = 3));
-  return o;
-}
-function focusInsight(matchId) {
-  activateTab('insights');
-  setTimeout(() => {
-    const panel = document.getElementById('tab-insights');
-    if (panel._setMatch) panel._setMatch(matchId);
-  }, 30);
-}
-
-function renderInsight(m, an) {
-  const home = getTeam(m.homeId), away = getTeam(m.awayId);
-  const sport = SPORTS[m.sport] || SPORTS.football;
-  const homeName = home ? home.name : '主队';
-  const awayName = away ? away.name : '客队';
-  const ratingDelta = {};
-  RATING_KEYS.forEach(k => (ratingDelta[k.key] = (an.home[k.key] || 3) - (an.away[k.key] || 3)));
-
-  const lines = [];
-  lines.push(`【${sport.emoji} ${sport.label} · ${fmtDT(m.datetime)}】`);
-  lines.push(`${homeName}${home && home.region ? `（${home.region}）` : ''} VS ${awayName}${away && away.region ? `（${away.region}）` : ''}`);
-  if (m.venue) lines.push(`📍 场地：${m.venue}`);
-  lines.push('');
-  lines.push('—— 看点 ——');
-
-  function reason(key, delta) {
-    const t = delta > 0 ? homeName : awayName;
-    const o = delta > 0 ? awayName : homeName;
-    const map = {
-      stamina:   `${t}体能更占优，比赛后段更难被拖住`,
-      core:      `${t}的核心球员能稳定持球解决问题，关键回合更可靠`,
-      chemistry: `${t}阵容磨合时间长，配合更默契，少失误`,
-      bench:     `${t}替补深度更厚，临场换人空间更大`,
-      venue:     `${t}更熟悉这块场地的草皮 / 木地板`,
-      morale:    `${t}战意更强，开局更敢上`,
-    };
-    return map[key];
-  }
-  const sorted = Object.entries(ratingDelta).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-  sorted.slice(0, 4).forEach(([key, delta]) => {
-    if (delta === 0) {
-      const label = RATING_KEYS.find(k => k.key === key).label;
-      lines.push(`• ${label}：两队接近，会成为胶着点`);
-    } else {
-      lines.push(`• ${reason(key, delta)}`);
-    }
-  });
-  if (m.round) lines.push(`• 阶段：${m.round}，输赢分量不同`);
-
-  const sumH = Object.values(an.home).reduce((a, b) => a + b, 0);
-  const sumA = Object.values(an.away).reduce((a, b) => a + b, 0);
-  lines.push('');
-  if (Math.abs(sumH - sumA) <= 2) {
-    lines.push('🔮 预判：六维差距很小，建议作为「悬念局」做内容包装');
-  } else if (sumH > sumA) {
-    lines.push(`🔮 预判：${homeName} 综合占优，关注 ${awayName} 是否能打出 1-2 个高光瞬间`);
+  // 3) Daily breakdown
+  const daily = dailyDisciplineBreakdown();
+  if (daily.length === 0) {
+    panel.appendChild(el('div', { class: 'empty' }, el('p', null, '暂无红黄牌记录')));
   } else {
-    lines.push(`🔮 预判：${awayName} 综合占优，关注 ${homeName} 主场战意能否抵消差距`);
+    panel.appendChild(el('div', { class: 'section-sub' }, '按日明细'));
+    daily.forEach(({ date, items }) => {
+      const card = el('div', { class: 'card discipline-day' });
+      card.appendChild(el('div', { class: 'discipline-day-title' }, date));
+      const grouped = {};
+      items.forEach(it => {
+        if (!grouped[it.teamId]) grouped[it.teamId] = [];
+        grouped[it.teamId].push(it);
+      });
+      Object.entries(grouped).forEach(([teamId, list]) => {
+        const t = getTeam(teamId);
+        const row = el('div', { class: 'discipline-row' });
+        row.appendChild(el('div', { class: 'discipline-team' }, t ? (t.shortName || t.name) : teamId));
+        const tags = el('div', { class: 'discipline-tags' });
+        list.forEach(it => {
+          tags.appendChild(el('span', { class: 'discipline-tag ' + it.type },
+            it.type === 'red' ? '🟥' : '🟨',
+            ' #' + (it.number || '?'),
+            ' ' + (it.name || ''),
+          ));
+        });
+        row.appendChild(tags);
+        card.appendChild(row);
+      });
+      panel.appendChild(card);
+    });
   }
-  if (an.keyPoints) { lines.push(''); lines.push('—— 补充 ——'); lines.push(an.keyPoints); }
 
-  return lines.join('\n');
-}
+  // Footer: rule note
+  panel.appendChild(el('div', { class: 'rule-note' },
+    '📜 规程：红牌或累计 2 黄 = 自动停下场；同场 1 黄+1 红 = 黄需累计；同场 1+1 黄变红 = 按红计、2 黄不累计；小组赛黄牌带入下一阶段。',
+  ));
+};
+
+/* ===== Regulations (规程) ===== */
+const REGULATION_CARDS = [
+  {
+    title: '⚽ 比赛规则',
+    items: [
+      '全场 90 分钟（上下半场各 45 分钟），中场休息 ≤ 15 分钟',
+      '每队上场 11 人，1 名必须为守门员；替补名单最多 7 人',
+      '常规时间可换人 5 次，被换下不得再次上场',
+      '场上不足 7 人 → 自然中止，判对方 3:0 胜（实际比分超过 3:0 以实际为准）',
+      '比赛用球：5 号足球；场地：人工草',
+    ],
+  },
+  {
+    title: '🟨🟥 红黄牌',
+    items: [
+      '红牌 = 自然停下场（纪委会可追加处罚）',
+      '同场累计 2 黄 = 自然停下场',
+      '同一阶段两场累计 2 黄 = 自动停下场',
+      '同场 1 黄后吃红 = 停下场，先前黄牌仍累计',
+      '同场 1+1 黄变红 = 按红计，2 黄不累计',
+      '小组赛黄牌带入淘汰赛阶段累计',
+    ],
+  },
+  {
+    title: '📊 积分排名',
+    items: [
+      '胜 = 3 分，平 = 1 分，负 = 0 分',
+      '同分排序顺序：',
+      '①相互交锋胜者前',
+      '②净胜球多者前',
+      '③总进球多者前',
+      '④红黄牌少者前',
+      '⑤抽签',
+    ],
+  },
+  {
+    title: '👤 参赛资格',
+    items: [
+      '本地户籍 / 长期居住 / 本地就职 1 年以上',
+      '出生年限：1986-01-01 至 2008-01-01',
+      '专业及退役运动员不允许参赛',
+      '每名运动员只能代表 1 支队伍参赛',
+      '弄虚作假 → 取消全队资格 + 成绩',
+    ],
+  },
+  {
+    title: '🏆 奖项',
+    items: [
+      '前三名：奖金 + 奖杯 + 奖牌 + 证书',
+      '道德风尚奖、优秀组织奖',
+      '最佳射手、最佳守门员、优秀裁判员',
+      '最终奖励办法视实际参赛队数另行调整',
+    ],
+  },
+  {
+    title: '👕 服装号码',
+    items: [
+      '深、浅 2 套统一颜色比赛服 + 护袜',
+      '号码范围 1-99，1 号必须为守门员',
+      '背号高 25-35cm，胸前/裤腿小号 10-15cm',
+      '胸前号码上方需印代表单位简称（如"昌都"）',
+      '禁止金属底/钢钉皮面鞋，必须戴护腿板',
+      '队长袖标宽 6cm，颜色与上衣明显有别',
+    ],
+  },
+  {
+    title: '📅 关键日程',
+    items: [
+      '报名截止：2026-05-10 17:00',
+      '报到：2026-05-29 至 30（昌都市教育局社会体育部）',
+      '赛前联席会：2026-05-31 10:00（教育局综合楼 101）',
+      '主办：昌都市人民政府 · 承办：昌都市教育局',
+      '联系：陈娜 13658953647 / 47879640@qq.com',
+    ],
+  },
+  {
+    title: '⚖ 申诉与处罚',
+    items: [
+      '申诉：赛后 2 小时内口头 + 24 小时内书面',
+      '执行《中国足球协会纪律准则》',
+      '弃赛/罢赛 → 全部比赛判对方 3:0',
+      '兴奋剂按国家体育总局《反兴奋剂管理办法》执行',
+    ],
+  },
+];
+
+renderers.regulations = function() {
+  const panel = document.getElementById('tab-regulations');
+  clear(panel);
+  panel.appendChild(el('div', { class: 'section-head' },
+    el('h2', null, '竞赛规程速查'),
+  ));
+  panel.appendChild(el('p', { class: 'muted small', style: 'margin: -8px 0 12px;' },
+    '依据《2026 年昌都市第二届全民运动会足球选拔赛竞赛规程》整理 · 11 人制男子足球',
+  ));
+
+  const grid = el('div', { class: 'reg-grid' });
+  REGULATION_CARDS.forEach(card => {
+    const c = el('div', { class: 'reg-card' });
+    c.appendChild(el('h3', null, card.title));
+    const ul = el('ul', null);
+    card.items.forEach(it => ul.appendChild(el('li', null, it)));
+    c.appendChild(ul);
+    grid.appendChild(c);
+  });
+  panel.appendChild(grid);
+};
 
 /* ===== Reports ===== */
 let _reportTpl = 'official';
@@ -1814,73 +1995,6 @@ function buildReport(m, tpl) {
   return '';
 }
 
-/* ===== Shoot list ===== */
-const SHOT_TEMPLATES = {
-  football: {
-    pre:   ['场地空镜 + 比分牌', '入场镜头 / 列队握手', '队员热身（颠球、传切）', '教练赛前布置', '看台球迷与横幅', '队长入场特写'],
-    live:  ['开球瞬间（多机位）', '每个进球 + 庆祝', '关键扑救 / 解围', '黄红牌 + 球员表情', '替补登场拥抱', '替补席教练反应', '半场比分牌+全景'],
-    post:  ['终场比分牌特写', '胜队庆祝 / 失利方反应', 'MVP 简短采访（30 秒）', '球员谢场 / 鞠躬', '颁奖（若有）', '球迷散场氛围'],
-  },
-  basketball: {
-    pre:   ['场馆空镜 + 比分牌', '球员热身投篮', '教练战术板讲解', '替补席摆放', '观众入场氛围', '主力出场特写'],
-    live:  ['跳球 / 开球', '每次得分（三分要单独慢动作）', '盖帽 / 抢断', '暂停席内反应', '罚球瞬间', '关键犯规吹罚', '节末比分牌'],
-    post:  ['终场比分牌', '胜方庆祝（拥抱、击掌）', 'MVP 30 秒采访', '球员谢场', '颁奖（若有）', '球迷出场镜头'],
-  },
-};
-
-renderers.shootlist = function() {
-  const panel = document.getElementById('tab-shootlist');
-  clear(panel);
-  panel.appendChild(el('div', { class: 'section-head' },
-    el('h2', null, '拍摄清单'),
-    el('button', { class: 'btn sm ghost', onClick: () => { shootState = {}; saveShoot(); renderers.shootlist(); toast('已重置'); } }, '重置'),
-  ));
-
-  const today = new Date();
-  const todayMatches = sortMatches(state.matches.filter(m => isSameDay(m.datetime, today)));
-  const pool = todayMatches.length ? todayMatches : state.matches.filter(m => m.status !== 'finished').slice(0, 3);
-
-  if (pool.length === 0) {
-    panel.appendChild(el('div', { class: 'empty' }, el('p', null, '没有待拍比赛')));
-    return;
-  }
-
-  pool.forEach(m => {
-    panel.appendChild(el('div', { class: 'section-sub' },
-      `${fmtDT(m.datetime)} · ${teamName(m.homeId)} VS ${teamName(m.awayId)}`));
-    const tpl = SHOT_TEMPLATES[m.sport] || SHOT_TEMPLATES.football;
-    const PHASES = [
-      { k: 'pre',  title: '🎬 赛前', items: tpl.pre },
-      { k: 'live', title: '🔥 赛中', items: tpl.live },
-      { k: 'post', title: '🏁 赛后', items: tpl.post },
-    ];
-    PHASES.forEach(phase => {
-      const sec = el('div', { class: 'shoot-section' });
-      sec.appendChild(el('h4', null, phase.title));
-      const ul = el('ul', { class: 'shoot-list' });
-      phase.items.forEach((text, idx) => {
-        const key = `${m.id}|${phase.k}|${idx}`;
-        const checked = !!shootState[key];
-        const li = el('li', { class: checked ? 'done' : '' });
-        const cb = el('input', { type: 'checkbox' });
-        cb.checked = checked;
-        cb.addEventListener('change', () => {
-          shootState[key] = cb.checked;
-          saveShoot();
-          li.classList.toggle('done', cb.checked);
-        });
-        const label = el('label', null, text);
-        label.addEventListener('click', () => { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); });
-        li.appendChild(cb);
-        li.appendChild(label);
-        ul.appendChild(li);
-      });
-      sec.appendChild(ul);
-      panel.appendChild(sec);
-    });
-  });
-};
-
 /* ===== Data import / export ===== */
 renderers.data = function() {
   const panel = document.getElementById('tab-data');
@@ -1908,13 +2022,12 @@ renderers.data = function() {
 
   panel.appendChild(el('div', { class: 'card' },
     el('h3', { style: 'margin:0 0 6px;font-size:15px;color:var(--danger);' }, '危险区'),
-    el('p', { class: 'muted small', style: 'margin:0;' }, '清空所有比赛、队伍、球员、看点'),
+    el('p', { class: 'muted small', style: 'margin:0;' }, '清空所有比赛、队伍、球员、风纪记录'),
     el('div', { class: 'btn-row mt-12' },
       el('button', { class: 'btn danger', onClick: () => {
         if (!confirmDel('确定清空全部数据？')) return;
         state = emptyState();
-        shootState = {};
-        save(); saveShoot();
+        save();
         renderAll();
         toast('已清空');
       } }, '清空全部'),
