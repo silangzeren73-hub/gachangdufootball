@@ -1,5 +1,12 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+/* 藏文字体（兜底国内安卓系统不含藏文字体的情况） */
+.tibetan {
+  font-family: "Noto Sans Tibetan", "Kailasa", "Microsoft Himalaya",
+    "Tibetan Machine Uni", "Jomolhari", sans-serif;
+  font-feature-settings: "kern" 1;
+}
+
 :root {
   --primary: #16a34a;
   --primary-dark: #15803d;
@@ -26,7 +33,8 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    "Microsoft YaHei", "Noto Sans Tibetan", "Kailasa", "Microsoft Himalaya",
+    "Helvetica Neue", Arial, sans-serif;
   font-size: 16px;
   color: var(--text);
   background: var(--bg);

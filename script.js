@@ -265,6 +265,27 @@ function teamLine(teamOrId, opts) {
     el('span', { class: 'team-with-logo-name' }, opts.short ? (t.shortName || t.name) : t.name),
   );
 }
+// 主场地三语显示：中文 · 别名 · 藏文
+function formatVenueNodes(name) {
+  if (!name) return [];
+  if (name === '津昌体育场' || name === '津昌体育文化中心') {
+    return [
+      name,
+      '（马草坝 · ',
+      el('span', { class: 'tibetan', lang: 'bo' }, 'རྟ་རྩྭ་ཐང་།'),
+      '）',
+    ];
+  }
+  return [name];
+}
+function formatVenueText(name) {
+  if (!name) return '';
+  if (name === '津昌体育场' || name === '津昌体育文化中心') {
+    return name + '（马草坝 · རྟ་རྩྭ་ཐང་།）';
+  }
+  return name;
+}
+
 function fmtDT(dt) {
   if (!dt) return '';
   const d = new Date(dt);
@@ -389,7 +410,7 @@ function matchCard(m) {
         el('span', { class: 'tag ' + m.sport }, `${sport.emoji} ${sport.label}`),
         ' ',
         el('span', null, fmtDT(m.datetime)),
-        m.venue ? el('span', null, ' · ' + m.venue) : null,
+        ...(m.venue ? [el('span', null, ' · ', ...formatVenueNodes(m.venue))] : []),
         m.round ? el('span', null, ' · ' + m.round) : null,
       ),
       el('span', { class: 'match-status ' + m.status }, statusLabel),
@@ -1776,6 +1797,7 @@ const REGULATION_CARDS = [
   {
     title: '📅 关键日程',
     items: [
+      '比赛场地：津昌体育场（马草坝 · རྟ་རྩྭ་ཐང་།）',
       '报名截止：2026-05-10 17:00',
       '报到：2026-05-29 至 30（昌都市教育局社会体育部）',
       '赛前联席会：2026-05-31 10:00（教育局综合楼 101）',
@@ -1922,7 +1944,7 @@ function buildReport(m, tpl) {
   if (tpl === 'official') {
     const lines = [];
     lines.push(`${sport.emoji} ${m.round ? m.round + ' · ' : ''}${homeName} ${hs}-${as} ${awayName}`);
-    lines.push(`${fmtDT(m.datetime)}${m.venue ? ' · ' + m.venue : ''}`);
+    lines.push(`${fmtDT(m.datetime)}${m.venue ? ' · ' + formatVenueText(m.venue) : ''}`);
     lines.push('');
     if (winner) {
       lines.push(`${winner.name} 以 ${Math.max(hs,as)}-${Math.min(hs,as)} 战胜 ${loser.name}。`);
@@ -1966,7 +1988,7 @@ function buildReport(m, tpl) {
   if (tpl === 'wechat') {
     const tone = winner ? `${winner.name} 赢了！` : `平了。`;
     const lines = [
-      `今晚${m.venue || '县城球场'}，${homeName} ${hs}-${as} ${awayName}，${tone}`,
+      `今晚${m.venue ? formatVenueText(m.venue) : '县城球场'}，${homeName} ${hs}-${as} ${awayName}，${tone}`,
       m.mvp ? `MVP ${m.mvp} 表现拉满。` : '',
       m.notes ? m.notes : '',
       '现场氛围拉满，下一场继续来 🔥',
@@ -1979,7 +2001,7 @@ function buildReport(m, tpl) {
     const lines = [];
     lines.push(`# ${homeName} ${hs}-${as} ${awayName} | ${m.round || sport.label + '战报'}`);
     lines.push('');
-    lines.push(`${fmtDT(m.datetime)}，${m.venue || '县城球场'}迎来一场${sport.label}对决。${homeName}对阵${awayName}，最终${winner ? winner.name + '以 ' + Math.max(hs,as) + '-' + Math.min(hs,as) + ' 获胜' : '双方 ' + hs + '-' + as + ' 战平'}。`);
+    lines.push(`${fmtDT(m.datetime)}，${m.venue ? formatVenueText(m.venue) : '县城球场'}迎来一场${sport.label}对决。${homeName}对阵${awayName}，最终${winner ? winner.name + '以 ' + Math.max(hs,as) + '-' + Math.min(hs,as) + ' 获胜' : '双方 ' + hs + '-' + as + ' 战平'}。`);
     if (goals.length) {
       lines.push('');
       lines.push('**进球时刻**');
