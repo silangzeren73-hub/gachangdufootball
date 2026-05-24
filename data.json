@@ -2148,9 +2148,9 @@
       "datetime": "2026-05-24T09:30",
       "venue": "津昌体育场",
       "round": "第四轮 · A组",
-      "status": "scheduled",
-      "homeScore": 0,
-      "awayScore": 0,
+      "status": "finished",
+      "homeScore": 1,
+      "awayScore": 1,
       "mvp": "",
       "notes": "",
       "events": []
@@ -2193,9 +2193,9 @@
       "datetime": "2026-05-24T15:30",
       "venue": "津昌体育场",
       "round": "第四轮 · C组",
-      "status": "scheduled",
+      "status": "finished",
       "homeScore": 0,
-      "awayScore": 0,
+      "awayScore": 1,
       "mvp": "",
       "notes": "",
       "events": []
@@ -2208,9 +2208,9 @@
       "datetime": "2026-05-24T17:30",
       "venue": "津昌体育场",
       "round": "第四轮 · B组",
-      "status": "scheduled",
-      "homeScore": 0,
-      "awayScore": 0,
+      "status": "finished",
+      "homeScore": 5,
+      "awayScore": 5,
       "mvp": "",
       "notes": "",
       "events": []
@@ -2412,8 +2412,8 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779629789,
-  "updatedAt": "2026-05-24 21:30",
+  "dataVersion": 1779631289,
+  "updatedAt": "2026-05-24 21:55",
   "sponsors": [
     {
       "id": "aruobaba",
