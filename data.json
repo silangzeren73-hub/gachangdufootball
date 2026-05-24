@@ -2163,9 +2163,9 @@
       "datetime": "2026-05-24T11:30",
       "venue": "津昌体育场",
       "round": "第四轮 · C组",
-      "status": "scheduled",
-      "homeScore": 0,
-      "awayScore": 0,
+      "status": "finished",
+      "homeScore": 4,
+      "awayScore": 1,
       "mvp": "",
       "notes": "",
       "events": []
@@ -2412,8 +2412,8 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779631289,
-  "updatedAt": "2026-05-24 21:55",
+  "dataVersion": 1779631539,
+  "updatedAt": "2026-05-24 22:00",
   "sponsors": [
     {
       "id": "aruobaba",
