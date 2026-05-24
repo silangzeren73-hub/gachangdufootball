@@ -3,6 +3,37 @@
    ============================================ */
 
 const STORAGE_KEY = 'cy-sports-workstation-v1';
+const ADMIN_KEY = 'cy-sports-admin';
+
+/* ===== Admin guard ===== */
+function isAdmin() {
+  return localStorage.getItem(ADMIN_KEY) === '1';
+}
+function initAdminMode() {
+  const params = new URLSearchParams(location.search);
+  if (params.has('admin')) {
+    const v = params.get('admin');
+    if (v === '1') localStorage.setItem(ADMIN_KEY, '1');
+    else if (v === '0') localStorage.removeItem(ADMIN_KEY);
+    const url = new URL(location.href);
+    url.searchParams.delete('admin');
+    history.replaceState(null, '', url.toString());
+  }
+  document.body.classList.toggle('admin-mode', isAdmin());
+}
+function renderAdminBadge() {
+  const existing = document.getElementById('adminBadge');
+  if (!isAdmin()) {
+    if (existing) existing.remove();
+    return;
+  }
+  if (existing) return;
+  const badge = document.createElement('div');
+  badge.id = 'adminBadge';
+  badge.className = 'admin-badge';
+  badge.innerHTML = '✏️ 管理员模式 · <a href="?admin=0">退出</a>';
+  document.body.appendChild(badge);
+}
 
 const SPORTS = {
   football: { label: '足球', emoji: '⚽', win: 3, draw: 1, loss: 0 },
@@ -374,6 +405,7 @@ function closeModal() {
 
 /* ===== Quick add menu ===== */
 function openQuickAdd() {
+  if (!isAdmin()) return toast('需要管理员权限');
   const wrap = el('div', { class: 'btn-row', style: 'flex-direction: column; gap:10px;' },
     el('button', { class: 'btn block', onClick: () => { closeModal(); openTeamForm(); } }, '＋ 新增队伍'),
     el('button', { class: 'btn block accent', onClick: () => { closeModal(); openMatchForm(); } }, '＋ 新增比赛'),
@@ -435,8 +467,8 @@ function matchCard(m) {
     cardBadges,
     (m.status === 'forfeit' && m.notes) ? el('div', { class: 'forfeit-note' }, '⚠ ' + m.notes) : null,
     el('div', { class: 'match-actions' },
-      el('button', { class: 'btn sm', onClick: () => openScoreEntry(m.id) }, '比分'),
-      el('button', { class: 'btn sm ghost', onClick: () => openMatchForm(m.id) }, '编辑'),
+      isAdmin() ? el('button', { class: 'btn sm', onClick: () => openScoreEntry(m.id) }, '比分') : null,
+      isAdmin() ? el('button', { class: 'btn sm ghost', onClick: () => openMatchForm(m.id) }, '编辑') : null,
       el('button', { class: 'btn sm ghost', onClick: () => { activateTab('reports'); setTimeout(() => focusReport(m.id), 50); } }, '战报'),
     ),
   );
@@ -603,9 +635,11 @@ renderers.today = function() {
   panel.appendChild(sponsorPresentsHeading('今日赛程'));
   if (todayMatches.length === 0) {
     panel.appendChild(sponsorEmptyHero('今天没有比赛'));
-    panel.appendChild(el('div', { class: 'btn-row', style: 'justify-content:center;margin-top:10px;' },
-      el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 安排一场'),
-    ));
+    if (isAdmin()) {
+      panel.appendChild(el('div', { class: 'btn-row', style: 'justify-content:center;margin-top:10px;' },
+        el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 安排一场'),
+      ));
+    }
   } else {
     todayMatches.forEach(m => panel.appendChild(matchCard(m)));
     const strip = sponsorSectionStrip();
@@ -656,14 +690,16 @@ renderers.schedule = function() {
 
   panel.appendChild(el('div', { class: 'section-head' },
     el('h2', null, '赛程'),
-    el('button', { class: 'btn sm', onClick: () => openMatchForm() }, '＋ 新建')
+    isAdmin() ? el('button', { class: 'btn sm', onClick: () => openMatchForm() }, '＋ 新建') : null,
   ));
 
   if (state.matches.length === 0) {
     panel.appendChild(sponsorEmptyHero('还没有比赛'));
-    panel.appendChild(el('div', { class: 'btn-row', style: 'justify-content:center;margin-top:10px;' },
-      el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 新建比赛'),
-    ));
+    if (isAdmin()) {
+      panel.appendChild(el('div', { class: 'btn-row', style: 'justify-content:center;margin-top:10px;' },
+        el('button', { class: 'btn', onClick: () => openMatchForm() }, '＋ 新建比赛'),
+      ));
+    }
     return;
   }
 
@@ -928,6 +964,7 @@ renderers.bracket = function() {
 };
 
 function openMatchForm(matchId) {
+  if (!isAdmin()) return toast('需要管理员权限');
   const m = matchId ? getMatch(matchId) : null;
   const isEdit = !!m;
 
@@ -1019,6 +1056,7 @@ function openMatchForm(matchId) {
 
 /* ===== Score entry ===== */
 function openScoreEntry(matchId) {
+  if (!isAdmin()) return toast('需要管理员权限');
   const m = getMatch(matchId);
   if (!m) return;
   const wrap = el('div');
@@ -1140,13 +1178,13 @@ renderers.teams = function() {
   clear(panel);
   panel.appendChild(el('div', { class: 'section-head' },
     el('h2', null, '队伍'),
-    el('button', { class: 'btn sm', onClick: () => openTeamForm() }, '＋ 新建'),
+    isAdmin() ? el('button', { class: 'btn sm', onClick: () => openTeamForm() }, '＋ 新建') : null,
   ));
 
   if (state.teams.length === 0) {
     panel.appendChild(el('div', { class: 'empty' },
       el('p', null, '还没有队伍'),
-      el('button', { class: 'btn', onClick: () => openTeamForm() }, '＋ 新建队伍'),
+      isAdmin() ? el('button', { class: 'btn', onClick: () => openTeamForm() }, '＋ 新建队伍') : null,
     ));
     return;
   }
@@ -1165,9 +1203,9 @@ renderers.teams = function() {
             t.banned ? el('span', { class: 'tag banned' }, '⛔ ' + (t.banReason || '已禁赛')) : null,
           ),
         ),
-        el('div', { class: 'btn-row' },
+        isAdmin() ? el('div', { class: 'btn-row' },
           el('button', { class: 'btn sm ghost', onClick: () => openTeamForm(t.id) }, '编辑'),
-        ),
+        ) : null,
       ),
       t.captain ? el('div', { class: 'small muted' }, '队长：' + t.captain) : null,
       t.intro ? el('div', { class: 'small mt-8' }, t.intro) : null,
@@ -1181,11 +1219,11 @@ renderers.teams = function() {
         );
       })(),
       el('div', { class: 'player-list' },
-        ...(t.players || []).map(p => el('span', { class: 'player-tag', onClick: () => openPlayerForm(p.id, t.id) },
+        ...(t.players || []).map(p => el('span', { class: 'player-tag', onClick: isAdmin() ? () => openPlayerForm(p.id, t.id) : null },
           p.number ? el('span', { class: 'num' }, '#' + p.number) : null,
           p.name + (p.position ? ' · ' + p.position : '') + (p.age ? ` · ${p.age}岁` : '')
         )),
-        el('span', { class: 'player-tag', style: 'color:var(--primary);font-weight:600;', onClick: () => openPlayerForm(null, t.id) }, '＋ 球员'),
+        isAdmin() ? el('span', { class: 'player-tag', style: 'color:var(--primary);font-weight:600;', onClick: () => openPlayerForm(null, t.id) }, '＋ 球员') : null,
       ),
     );
     panel.appendChild(card);
@@ -1193,6 +1231,7 @@ renderers.teams = function() {
 };
 
 function openTeamForm(teamId) {
+  if (!isAdmin()) return toast('需要管理员权限');
   const t = teamId ? getTeam(teamId) : null;
   const isEdit = !!t;
   const form = el('form', null);
@@ -1266,6 +1305,7 @@ function getPlayer(playerId) {
 }
 
 function openPlayerForm(playerId, teamId) {
+  if (!isAdmin()) return toast('需要管理员权限');
   const found = playerId ? getPlayer(playerId) : null;
   const p = found ? found.player : null;
   const isEdit = !!p;
@@ -1350,7 +1390,7 @@ renderers.players = function() {
 
   panel.appendChild(el('div', { class: 'section-head' },
     el('h2', null, '球员故事库'),
-    el('button', { class: 'btn sm', onClick: () => openPlayerForm() }, '＋ 新增'),
+    isAdmin() ? el('button', { class: 'btn sm', onClick: () => openPlayerForm() }, '＋ 新增') : null,
   ));
 
   const all = [];
@@ -1358,7 +1398,7 @@ renderers.players = function() {
   if (all.length === 0) {
     panel.appendChild(el('div', { class: 'empty' },
       el('p', null, '还没有球员故事'),
-      el('button', { class: 'btn', onClick: () => openPlayerForm() }, '＋ 新增球员'),
+      isAdmin() ? el('button', { class: 'btn', onClick: () => openPlayerForm() }, '＋ 新增球员') : null,
     ));
     return;
   }
@@ -1392,7 +1432,7 @@ renderers.players = function() {
         p.experience ? el('div', { class: 'story-text' }, p.experience) : null,
         p.skills ? el('div', { class: 'story-text muted small mt-8' }, '🎯 ' + p.skills) : null,
         el('div', { class: 'btn-row mt-12' },
-          el('button', { class: 'btn sm ghost', onClick: () => openPlayerForm(p.id) }, '编辑'),
+          isAdmin() ? el('button', { class: 'btn sm ghost', onClick: () => openPlayerForm(p.id) }, '编辑') : null,
           el('button', { class: 'btn sm', onClick: () => openVideoTopic(p, t) }, '生成短视频选题'),
         ),
       );
@@ -2296,6 +2336,8 @@ function bindEvents() {
 }
 
 function boot() {
+  initAdminMode();
+  renderAdminBadge();
   bindEvents();
   const initial = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
   activateTab(initial);

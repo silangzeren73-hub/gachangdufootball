@@ -1,5 +1,27 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ===== Admin guard ===== */
+/* Hide data tab and quick-add button for non-admin viewers */
+body:not(.admin-mode) .tab-btn[data-tab="data"] { display: none; }
+body:not(.admin-mode) #quickAddBtn { display: none; }
+
+.admin-badge {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: var(--primary, #16a34a);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-badge a { color: #fef3c7; text-decoration: underline; font-weight: 600; }
+
 /* 藏文字体（兜底国内安卓系统不含藏文字体的情况） */
 .tibetan {
   font-family: "Noto Sans Tibetan", "Kailasa", "Microsoft Himalaya",
