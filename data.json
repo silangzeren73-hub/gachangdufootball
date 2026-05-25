@@ -2603,8 +2603,8 @@
     {
       "id": "m-026",
       "sport": "football",
-      "homeId": "t-tba",
-      "awayId": "t-tba",
+      "homeId": "t-krq",
+      "awayId": "t-dqx",
       "datetime": "2026-05-26T10:30",
       "venue": "津昌体育场",
       "round": "八强 · A1 vs C2",
@@ -2618,8 +2618,8 @@
     {
       "id": "m-027",
       "sport": "football",
-      "homeId": "t-tba",
-      "awayId": "t-tba",
+      "homeId": "t-mkx",
+      "awayId": "t-zgx",
       "datetime": "2026-05-26T12:30",
       "venue": "津昌体育场",
       "round": "八强 · B1 vs D2",
@@ -2633,8 +2633,8 @@
     {
       "id": "m-028",
       "sport": "football",
-      "homeId": "t-tba",
-      "awayId": "t-tba",
+      "homeId": "t-gjx",
+      "awayId": "t-jdx",
       "datetime": "2026-05-26T14:30",
       "venue": "津昌体育场",
       "round": "八强 · C1 vs A2",
@@ -2648,8 +2648,8 @@
     {
       "id": "m-029",
       "sport": "football",
-      "homeId": "t-tba",
-      "awayId": "t-tba",
+      "homeId": "t-syj",
+      "awayId": "t-sjy",
       "datetime": "2026-05-26T16:30",
       "venue": "津昌体育场",
       "round": "八强 · D1 vs B2",
@@ -2722,7 +2722,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779712250,
+  "dataVersion": 1779713079,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
