@@ -296,7 +296,7 @@ function teamLine(teamOrId, opts) {
     el('span', { class: 'team-with-logo-name' }, opts.short ? (t.shortName || t.name) : t.name),
   );
 }
-// 主场地三语显示：中文 · 别名 · 藏文
+// 主场地三语显示：中文 · 别名 · 双藏文（两种说法并列）
 function formatVenueNodes(name) {
   if (!name) return [];
   if (name === '津昌体育场' || name === '津昌体育文化中心') {
@@ -304,7 +304,9 @@ function formatVenueNodes(name) {
       name,
       '（马草坝 · ',
       el('span', { class: 'tibetan', lang: 'bo' }, 'རྟ་རྩྭ་ཐང་།'),
-      '）',
+      '（',
+      el('span', { class: 'tibetan', lang: 'bo' }, 'སྟག་རྩར་ཐང་།'),
+      '））',
     ];
   }
   return [name];
@@ -312,7 +314,7 @@ function formatVenueNodes(name) {
 function formatVenueText(name) {
   if (!name) return '';
   if (name === '津昌体育场' || name === '津昌体育文化中心') {
-    return name + '（马草坝 · རྟ་རྩྭ་ཐང་།）';
+    return name + '（马草坝 · རྟ་རྩྭ་ཐང་།（སྟག་རྩར་ཐང་།））';
   }
   return name;
 }
@@ -1854,7 +1856,8 @@ const REGULATION_CARDS = [
       '报名截止：2026-05-10 17:00',
       '报到：2026-05-29 至 30（昌都市教育局社会体育部）',
       '赛前联席会：2026-05-31 10:00（教育局综合楼 101）',
-      '主办：昌都市人民政府 · 承办：昌都市教育局',
+      '主办：中共昌都市委员会 · 昌都市人民政府',
+      '承办：昌都市教育局（昌都市体育局）',
     ],
   },
   {
@@ -2087,14 +2090,21 @@ function buildPosterDOM(date, matches) {
 
   const root = el('div', { class: 'poster-root' });
 
+  // Header: ball + tournament title (CN + subtitle + BO)
   root.appendChild(el('div', { class: 'poster-header' },
     el('div', { class: 'poster-emoji' }, '⚽'),
     el('div', { class: 'poster-title-wrap' },
       el('div', { class: 'poster-title' }, '昌都市第二届全民运动会'),
-      el('div', { class: 'poster-subtitle' }, '足球选拔赛 · 暨体彩杯足球赛'),
+      el('div', { class: 'poster-subtitle' }, '暨西藏自治区第十四届运动会选拔赛'),
+      el('div', { class: 'poster-title-bo tibetan', lang: 'bo' },
+        'ཆབ་མདོ་སྐབས་གཉིས་པའི་དམངས་ཡོངས་ལུས་རྩལ་འགྲན་ཚོགས།'),
     ),
   ));
+  root.appendChild(el('div', { class: 'poster-divider' },
+    el('span', { class: 'poster-divider-diamond' }),
+  ));
 
+  // Date band
   root.appendChild(el('div', { class: 'poster-date-band' },
     el('div', { class: 'poster-date-main' },
       el('span', { class: 'poster-month' }, month + '月'),
@@ -2111,17 +2121,35 @@ function buildPosterDOM(date, matches) {
     ));
   }
 
+  // Matches
   const list = el('div', { class: 'poster-matches' });
   matches.forEach(m => {
     const home = getTeam(m.homeId);
     const away = getTeam(m.awayId);
     const hs = m.homeScore || 0;
     const as = m.awayScore || 0;
+    const isForfeit = m.status === 'forfeit';
     const homeWin = hs > as, awayWin = as > hs;
+    const groupText = (m.round || '').split('·').pop().trim() || '';
+
+    const homeLogo = home && home.logoImage
+      ? el('img', { class: 'poster-team-logo', src: home.logoImage, referrerpolicy: 'no-referrer' })
+      : el('div', { class: 'poster-team-logo placeholder' }, '⚽');
+    const awayLogo = away && away.logoImage
+      ? el('img', { class: 'poster-team-logo', src: away.logoImage, referrerpolicy: 'no-referrer' })
+      : el('div', { class: 'poster-team-logo placeholder' }, '⚽');
+    const homeBo = home && home.shortNameBo;
+    const awayBo = away && away.shortNameBo;
+
     const row = el('div', { class: 'poster-match' },
+      groupText ? el('div', { class: 'poster-group-chip' + (isForfeit ? ' forfeit' : '') },
+        groupText + (isForfeit ? ' · 判负' : '')) : null,
       el('div', { class: 'poster-team home' + (homeWin ? ' win' : '') },
-        home && home.logoImage ? el('img', { class: 'poster-team-logo', src: home.logoImage, referrerpolicy: 'no-referrer' }) : el('div', { class: 'poster-team-logo placeholder' }, '⚽'),
-        el('div', { class: 'poster-team-name' }, home ? (home.shortName || home.name) : '主队'),
+        homeLogo,
+        el('div', { class: 'poster-team-names' },
+          el('div', { class: 'poster-team-name' }, home ? (home.shortName || home.name) : '主队'),
+          homeBo ? el('div', { class: 'poster-team-name-bo tibetan', lang: 'bo' }, homeBo) : null,
+        ),
       ),
       el('div', { class: 'poster-score' },
         el('span', { class: 'poster-score-num' + (homeWin ? ' win' : '') }, String(hs)),
@@ -2129,28 +2157,41 @@ function buildPosterDOM(date, matches) {
         el('span', { class: 'poster-score-num' + (awayWin ? ' win' : '') }, String(as)),
       ),
       el('div', { class: 'poster-team away' + (awayWin ? ' win' : '') },
-        el('div', { class: 'poster-team-name' }, away ? (away.shortName || away.name) : '客队'),
-        away && away.logoImage ? el('img', { class: 'poster-team-logo', src: away.logoImage, referrerpolicy: 'no-referrer' }) : el('div', { class: 'poster-team-logo placeholder' }, '⚽'),
+        el('div', { class: 'poster-team-names' },
+          el('div', { class: 'poster-team-name' }, away ? (away.shortName || away.name) : '客队'),
+          awayBo ? el('div', { class: 'poster-team-name-bo tibetan', lang: 'bo' }, awayBo) : null,
+        ),
+        awayLogo,
       ),
     );
     list.appendChild(row);
   });
   root.appendChild(list);
 
+  // Host / organizer block (gold-outlined, prominent)
+  root.appendChild(el('div', { class: 'poster-host-block' },
+    el('div', { class: 'poster-host-line' }, '主办  中共昌都市委员会 · 昌都市人民政府'),
+    el('div', { class: 'poster-host-line' }, '承办  昌都市教育局（昌都市体育局）'),
+  ));
+
+  // Sponsor block (brand-red, label + dashed lines + centered LOGO)
   root.appendChild(el('div', { class: 'poster-sponsor-block' },
-    el('div', { class: 'poster-sponsor-text' },
-      el('div', { class: 'poster-sponsor-label' }, '本届赛事冠名'),
-      el('div', { class: 'poster-sponsor-name' }, '阿若博巴'),
+    el('div', { class: 'poster-sponsor-label-row' },
+      el('span', { class: 'poster-sponsor-dash' }),
+      el('span', { class: 'poster-sponsor-label' }, '本届赛事冠名'),
+      el('span', { class: 'poster-sponsor-dash' }),
     ),
     el('img', { class: 'poster-sponsor-logo', src: 'logos/sponsors/aruobaba.png', referrerpolicy: 'no-referrer' }),
   ));
 
+  // Footer: URL + venue + QR
   const qrImg = el('img', { class: 'poster-qr', alt: 'QR' });
   root.appendChild(el('div', { class: 'poster-footer' },
     el('div', { class: 'poster-footer-text' },
       el('div', { class: 'poster-url' }, 'chamdosport.com'),
-      el('div', { class: 'poster-venue' }, '津昌体育场（马草坝 · ',
-        el('span', { class: 'tibetan', lang: 'bo' }, 'རྟ་རྩྭ་ཐང་།'), '）'),
+      el('div', { class: 'poster-venue' }, '津昌体育场 · 马草坝'),
+      el('div', { class: 'poster-venue-bo tibetan', lang: 'bo' },
+        'རྟ་རྩྭ་ཐང་།（སྟག་རྩར་ཐང་།）'),
     ),
     qrImg,
   ));
