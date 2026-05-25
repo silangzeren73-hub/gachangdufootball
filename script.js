@@ -830,7 +830,61 @@ renderers.today = function() {
       el('button', { class: 'btn ghost sm', onClick: () => activateTab('data') }, '前往'),
     ));
   }
+
+  // 农特展销 · 底部滚动条带（demo 数据，后续接入 state.vendors）
+  const vendorBar = renderVendorMarquee();
+  if (vendorBar) panel.appendChild(vendorBar);
 };
+
+/* ===== 农特展销 marquee（demo） ===== */
+const DEMO_VENDORS = [
+  { icon: '🍄', name: '卡若区天圣', tagline: '高原野生菌 · 牦牛肉干', link: '' },
+  { icon: '🍯', name: '类乌齐金堂农牧', tagline: '黑青稞蜂蜜 · 现榨核桃油', link: '' },
+  { icon: '🧈', name: '昌都康酒业', tagline: '青稞酒 · 礼盒装预订', link: '' },
+  { icon: '🌶️', name: '芒康盐井', tagline: '加加面 · 古法红盐', link: '' },
+  { icon: '🐂', name: '丁青县农特馆', tagline: '虫草 · 风干牦牛肉', link: '' },
+  { icon: '🍵', name: '察雅藏茶坊', tagline: '酥油茶包 · 高原黑茶', link: '' },
+];
+
+function renderVendorMarquee() {
+  const vendors = (Array.isArray(state.vendors) && state.vendors.length) ? state.vendors : DEMO_VENDORS;
+  if (!vendors.length) return null;
+
+  // 复制两份内容，CSS animation 平移 -50% 实现无缝循环
+  const buildItems = () => vendors.map(v => {
+    const inner = el('div', { class: 'vendor-card-inner' },
+      el('div', { class: 'vendor-icon' }, v.icon || '🛒'),
+      el('div', { class: 'vendor-text' },
+        el('div', { class: 'vendor-name' }, v.name || '展销摊位'),
+        el('div', { class: 'vendor-tag' }, v.tagline || ''),
+      ),
+      el('span', { class: 'vendor-go' }, '查看 ›'),
+    );
+    if (v.link) {
+      return el('a', { class: 'vendor-card', href: v.link, target: '_blank', rel: 'noopener' }, inner);
+    }
+    return el('button', { class: 'vendor-card', onClick: () => openVendorDetail(v) }, inner);
+  });
+
+  const wrap = el('div', { class: 'vendor-marquee' },
+    el('div', { class: 'vendor-marquee-head' },
+      el('span', { class: 'vendor-marquee-title' }, '🛍 农特展销 · 场边摊位'),
+      el('span', { class: 'vendor-marquee-sub' }, '点击直达摊主'),
+    ),
+    el('div', { class: 'vendor-marquee-viewport' },
+      el('div', { class: 'vendor-marquee-track' },
+        ...buildItems(),
+        ...buildItems(),
+      ),
+    ),
+  );
+  return wrap;
+}
+
+function openVendorDetail(v) {
+  // demo：暂用 alert 占位；正式版可改成 modal（产品图廊 + 二维码 + 复制电话）
+  alert(`${v.icon || '🛒'} ${v.name}\n\n${v.tagline}\n\n（暂未配置详情链接 · 正式版会显示产品图 + 联系方式二维码）`);
+}
 
 /* ===== Schedule ===== */
 renderers.schedule = function() {
