@@ -2375,7 +2375,20 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "14",
+          "playerName": "江村平措"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "67",
+          "playerName": "达拉郎加"
+        }
+      ]
     },
     {
       "id": "m-016",
@@ -2390,7 +2403,20 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "30",
+          "playerName": "旦增扎西"
+        },
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "12",
+          "playerName": "次仁顿珠"
+        }
+      ]
     },
     {
       "id": "m-017",
@@ -2420,7 +2446,62 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "11",
+          "playerName": "贡秋曲珠"
+        },
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "9",
+          "playerName": "次旺热旦"
+        },
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "7",
+          "playerName": "旦增次加"
+        },
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "7",
+          "playerName": "旦增次加"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "9",
+          "playerName": "布穷"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "7",
+          "playerName": "巴桑"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "10",
+          "playerName": "江村顿珠"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "26",
+          "playerName": "珠扎尼玛"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "21",
+          "playerName": "贡秋扎西"
+        }
+      ]
     },
     {
       "id": "m-019",
@@ -2435,7 +2516,14 @@
       "awayScore": 5,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "31",
+          "playerName": "泽仁曲培"
+        }
+      ]
     },
     {
       "id": "m-020",
@@ -2634,7 +2722,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779682373,
+  "dataVersion": 1779697555,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {

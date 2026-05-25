@@ -438,6 +438,30 @@ function matchCard(m) {
       )
     : null;
 
+  // 该场停赛（仅未开赛 / 进行中显示，已结束就不再预报）
+  let suspendedRow = null;
+  if (m.status === 'scheduled' || m.status === 'live') {
+    const sus = getSuspensionsForMatch(m);
+    if (sus.length > 0) {
+      suspendedRow = el('div', { class: 'match-suspended' },
+        el('span', { class: 'match-suspended-icon' }, '🚫'),
+        el('span', { class: 'match-suspended-label' }, '该场停赛：'),
+        el('span', { class: 'match-suspended-list' },
+          ...sus.map((s, i) => {
+            const t = getTeam(s.teamId);
+            return el('span', { class: 'match-suspended-item' },
+              i > 0 ? el('span', { class: 'match-suspended-sep' }, ' · ') : null,
+              el('strong', null, t ? (t.shortName || t.name) : '—'),
+              ' #' + (s.number || '?'),
+              ' ' + (s.name || ''),
+              el('span', { class: 'match-suspended-reason' }, '（' + s.reasons.join('/') + '）'),
+            );
+          }),
+        ),
+      );
+    }
+  }
+
   return el('div', { class: 'match-card' },
     el('div', { class: 'match-meta' },
       el('div', null,
@@ -467,6 +491,7 @@ function matchCard(m) {
       ),
     ),
     cardBadges,
+    suspendedRow,
     (m.status === 'forfeit' && m.notes) ? el('div', { class: 'forfeit-note' }, '⚠ ' + m.notes) : null,
     el('div', { class: 'match-actions' },
       isAdmin() ? el('button', { class: 'btn sm', onClick: () => openScoreEntry(m.id) }, '比分') : null,
@@ -583,6 +608,128 @@ function computeUpcomingSuspensions() {
     }
   });
   return list;
+}
+
+// 单场停赛预报：返回这场比赛主客两队应缺席的球员
+// 模型：按时序回放每队此前所有完赛 → 红牌 / 累计 2 黄 → 下一场停赛；停赛在「下一场」服完自动清零
+function getSuspensionsForMatch(targetMatch) {
+  if (!targetMatch) return [];
+  const targetDt = targetMatch.datetime || '';
+  const teamIds = [targetMatch.homeId, targetMatch.awayId].filter(Boolean);
+  const result = [];
+
+  teamIds.forEach(teamId => {
+    const priors = state.matches
+      .filter(m => (m.status === 'finished' || m.status === 'forfeit')
+                && m.id !== targetMatch.id
+                && (m.homeId === teamId || m.awayId === teamId)
+                && (m.datetime || '').localeCompare(targetDt) < 0)
+      .slice()
+      .sort((a, b) => (a.datetime || '').localeCompare(b.datetime || ''));
+
+    const tracker = {};
+    priors.forEach(m => {
+      Object.values(tracker).forEach(t => {
+        if (t.pending) { t.pending = false; t.reasons = []; }
+      });
+      const perPlayer = {};
+      (Array.isArray(m.events) ? m.events : []).forEach(e => {
+        if (e.type !== 'yellow' && e.type !== 'red') return;
+        const eTeam = e.team === 'home' ? m.homeId : (e.team === 'away' ? m.awayId : null);
+        if (eTeam !== teamId) return;
+        const num = String(e.playerNumber || e.number || '').trim();
+        const nm = (e.playerName || e.player || '').trim();
+        if (!nm && !num) return;
+        const k = num + '|' + nm;
+        if (!perPlayer[k]) perPlayer[k] = { name: nm, number: num, y: 0, r: 0 };
+        if (e.type === 'yellow') perPlayer[k].y++;
+        else perPlayer[k].r++;
+      });
+      Object.entries(perPlayer).forEach(([k, info]) => {
+        if (!tracker[k]) tracker[k] = { name: info.name, number: info.number, yellows: 0, pending: false, reasons: [] };
+        const t = tracker[k];
+        if (info.y >= 2 && info.r === 0) {
+          t.pending = true; t.reasons = ['同场 2 黄变红'];
+        } else if (info.r > 0) {
+          t.pending = true; t.reasons = ['红牌'];
+          if (info.y > 0) {
+            t.yellows += info.y;
+            if (t.yellows >= 2) { t.reasons.push('累计 2 黄'); t.yellows = 0; }
+          }
+        } else if (info.y > 0) {
+          t.yellows += info.y;
+          if (t.yellows >= 2) { t.pending = true; t.reasons = ['累计 2 黄']; t.yellows = 0; }
+        }
+      });
+    });
+    Object.values(tracker).forEach(t => {
+      if (t.pending) result.push({ teamId, name: t.name, number: t.number, reasons: t.reasons.slice() });
+    });
+  });
+  return result;
+}
+
+// 全员牌库：每名拿过牌的球员的累计 + 当前停赛状态
+// 状态计算：按该球员所在队伍的完赛比赛时序回放，停赛在下一场服完自动清零
+function fullCardLedger() {
+  // Pass 1: 收集所有拿过牌的球员（totalYellow / totalRed）
+  const players = {};
+  state.matches.forEach(m => {
+    if (m.status !== 'finished' && m.status !== 'forfeit') return;
+    (Array.isArray(m.events) ? m.events : []).forEach(e => {
+      if (e.type !== 'yellow' && e.type !== 'red') return;
+      const teamId = e.team === 'home' ? m.homeId : (e.team === 'away' ? m.awayId : null);
+      if (!teamId) return;
+      const num = String(e.playerNumber || e.number || '').trim();
+      const nm = (e.playerName || e.player || '').trim();
+      if (!nm && !num) return;
+      const key = teamId + '|' + num + '|' + nm;
+      if (!players[key]) players[key] = { teamId, name: nm, number: num, yellows: 0, reds: 0 };
+      if (e.type === 'yellow') players[key].yellows++;
+      else players[key].reds++;
+    });
+  });
+
+  // Pass 2: 对每名球员按队伍时序回放，得出当前 pending 状态
+  Object.values(players).forEach(p => {
+    const teamPriors = state.matches
+      .filter(m => (m.status === 'finished' || m.status === 'forfeit')
+                && (m.homeId === p.teamId || m.awayId === p.teamId))
+      .slice()
+      .sort((a, b) => (a.datetime || '').localeCompare(b.datetime || ''));
+
+    let accY = 0, pending = false, reasons = [];
+    teamPriors.forEach(m => {
+      if (pending) { pending = false; reasons = []; }
+      let y = 0, r = 0;
+      (Array.isArray(m.events) ? m.events : []).forEach(e => {
+        if (e.type !== 'yellow' && e.type !== 'red') return;
+        const eTeam = e.team === 'home' ? m.homeId : (e.team === 'away' ? m.awayId : null);
+        if (eTeam !== p.teamId) return;
+        const num = String(e.playerNumber || e.number || '').trim();
+        const nm = (e.playerName || e.player || '').trim();
+        if (num !== p.number || nm !== p.name) return;
+        if (e.type === 'yellow') y++; else r++;
+      });
+      if (y >= 2 && r === 0) {
+        pending = true; reasons = ['同场 2 黄变红'];
+      } else if (r > 0) {
+        pending = true; reasons = ['红牌'];
+        if (y > 0) {
+          accY += y;
+          if (accY >= 2) { reasons.push('累计 2 黄'); accY = 0; }
+        }
+      } else if (y > 0) {
+        accY += y;
+        if (accY >= 2) { pending = true; reasons = ['累计 2 黄']; accY = 0; }
+      }
+    });
+    p.accYellow = accY;
+    p.status = pending ? '待停下场' : '—';
+    p.reasons = pending ? reasons : [];
+  });
+
+  return Object.values(players);
 }
 
 // Returns daily breakdown of cards: [{ date, items: [{teamId, name, number, type}] }]
@@ -1745,7 +1892,80 @@ renderers.discipline = function() {
     ),
   ));
 
-  // 3) Daily breakdown
+  // 3) 全员牌库（可按队筛选）
+  const ledger = fullCardLedger();
+  if (ledger.length > 0) {
+    panel.appendChild(el('div', { class: 'section-sub' }, '全员牌库 · 每位球员累计'));
+
+    const teamIdsWithCards = Array.from(new Set(ledger.map(r => r.teamId)));
+    const teamOptions = teamIdsWithCards
+      .map(id => ({ id, team: getTeam(id) }))
+      .sort((a, b) => (a.team?.name || '').localeCompare(b.team?.name || '', 'zh'));
+
+    const filterWrap = el('div', { class: 'cardledger-filter' });
+    const select = el('select', { class: 'cardledger-select' });
+    select.appendChild(el('option', { value: '__all' }, '全部队伍'));
+    teamOptions.forEach(({ id, team }) => {
+      select.appendChild(el('option', { value: id }, team ? (team.shortName || team.name) : id));
+    });
+    filterWrap.appendChild(el('span', { class: 'cardledger-filter-label' }, '筛选：'));
+    filterWrap.appendChild(select);
+    panel.appendChild(filterWrap);
+
+    const tableWrap = el('div', { class: 'standings-wrap cardledger-wrap' });
+    const renderTable = (filterTeamId) => {
+      clear(tableWrap);
+      const rows = ledger
+        .filter(r => filterTeamId === '__all' ? true : r.teamId === filterTeamId)
+        .sort((a, b) => {
+          // 按队伍 → 状态优先 → 号码
+          const teamA = (getTeam(a.teamId)?.name) || '';
+          const teamB = (getTeam(b.teamId)?.name) || '';
+          if (teamA !== teamB) return teamA.localeCompare(teamB, 'zh');
+          if (a.status !== b.status) return a.status === '待停下场' ? -1 : 1;
+          return (parseInt(a.number) || 999) - (parseInt(b.number) || 999);
+        });
+
+      if (rows.length === 0) {
+        tableWrap.appendChild(el('div', { class: 'empty' }, el('p', null, '没有匹配的球员')));
+        return;
+      }
+
+      const tbody = el('tbody', null,
+        ...rows.map(r => {
+          const team = getTeam(r.teamId);
+          return el('tr', { class: r.status === '待停下场' ? 'cardledger-pending' : '' },
+            el('td', { class: 'team-name' }, team ? (team.shortName || team.name) : r.teamId),
+            el('td', null, '#' + (r.number || '?')),
+            el('td', null, r.name || '—'),
+            el('td', null, r.yellows > 0 ? el('span', { class: 'cardledger-y' }, String(r.yellows)) : '—'),
+            el('td', null, r.reds > 0 ? el('span', { class: 'cardledger-r' }, String(r.reds)) : '—'),
+            el('td', null,
+              r.status === '待停下场'
+                ? el('span', { class: 'cardledger-status-pending' }, '🚫 待停下场', r.reasons.length ? el('small', null, ' · ' + r.reasons.join('/')) : null)
+                : el('span', { class: 'cardledger-status-ok' }, '—'),
+            ),
+          );
+        }),
+      );
+      tableWrap.appendChild(el('table', { class: 'standings-table cardledger-table' },
+        el('thead', null, el('tr', null,
+          el('th', null, '队伍'),
+          el('th', null, '#'),
+          el('th', null, '球员'),
+          el('th', null, '🟨'),
+          el('th', null, '🟥'),
+          el('th', null, '当前状态'),
+        )),
+        tbody,
+      ));
+    };
+    select.addEventListener('change', () => renderTable(select.value));
+    panel.appendChild(tableWrap);
+    renderTable('__all');
+  }
+
+  // 4) Daily breakdown
   const daily = dailyDisciplineBreakdown();
   if (daily.length === 0) {
     panel.appendChild(el('div', { class: 'empty' }, el('p', null, '暂无红黄牌记录')));

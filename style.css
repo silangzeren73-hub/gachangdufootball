@@ -886,6 +886,66 @@ input, select, textarea { font-family: inherit; }
 }
 .discipline-tag.yellow { background: #fef3c7; color: #78350f; }
 .discipline-tag.red { background: #fecaca; color: #7f1d1d; font-weight: 600; }
+
+/* ===== 比赛卡 · 该场停赛 ===== */
+.match-suspended {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: baseline;
+  margin: 6px 12px 0;
+  padding: 6px 10px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border-left: 3px solid #f97316;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #9a3412;
+}
+.match-suspended-icon { font-size: 13px; }
+.match-suspended-label { font-weight: 700; color: #c2410c; }
+.match-suspended-list { display: inline-flex; flex-wrap: wrap; gap: 0; }
+.match-suspended-item strong { color: #7c2d12; font-weight: 700; }
+.match-suspended-sep { color: #c2410c; opacity: 0.5; }
+.match-suspended-reason { color: #9a3412; opacity: 0.8; font-size: 11px; }
+
+/* ===== 全员牌库表 ===== */
+.cardledger-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 10px;
+  font-size: 13px;
+}
+.cardledger-filter-label { color: var(--muted); font-weight: 600; }
+.cardledger-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  font-size: 13px;
+  color: var(--text);
+  min-width: 140px;
+}
+.cardledger-wrap { margin-bottom: 14px; }
+.cardledger-table td { font-size: 13px; }
+.cardledger-table tr.cardledger-pending { background: linear-gradient(90deg, #fff7ed 0%, transparent 60%); }
+.cardledger-y { color: #b45309; font-weight: 700; }
+.cardledger-r { color: #b91c1c; font-weight: 700; }
+.cardledger-status-pending {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: #c2410c;
+  font-weight: 600;
+}
+.cardledger-status-pending small {
+  font-weight: 400;
+  color: #9a3412;
+  opacity: 0.85;
+}
+.cardledger-status-ok { color: var(--muted); }
+
 .rule-note {
   font-size: 12px;
   color: var(--muted);
