@@ -2165,7 +2165,7 @@ async function openDailyPoster(date) {
   if (matches.length === 0) {
     return toast('当天还没有结束的比赛');
   }
-  if (typeof html2canvas === 'undefined' || typeof QRCode === 'undefined') {
+  if (typeof html2canvas === 'undefined' || typeof qrcode === 'undefined') {
     return toast('海报组件加载中，稍等 2 秒再试');
   }
 
@@ -2178,11 +2178,13 @@ async function openDailyPoster(date) {
   document.body.appendChild(offscreen);
 
   try {
-    const qrDataUrl = await new Promise((resolve) => {
-      QRCode.toDataURL('https://chamdosport.com', { width: 240, margin: 1 }, (err, url) => {
-        resolve(err ? '' : url);
-      });
-    });
+    let qrDataUrl = '';
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData('https://chamdosport.com');
+      qr.make();
+      qrDataUrl = qr.createDataURL(6, 4);
+    } catch (e) {}
     if (qrDataUrl) qrImg.src = qrDataUrl;
 
     const allImgs = Array.from(root.querySelectorAll('img'));
