@@ -1878,7 +1878,8 @@
       "logoColor": "#a21caf",
       "logoBg": "#fdf4ff",
       "nameBo": "མཛོ་སྒང་རྫོང་འཐུས་མིའི་རུ་ཁག",
-      "shortNameBo": "མཛོ་སྒང་རྫོང་།"
+      "shortNameBo": "མཛོ་སྒང་རྫོང་།",
+      "logoImage": "logos/t-zgx.png"
     },
     {
       "id": "t-cyx",
@@ -2722,7 +2723,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779713079,
+  "dataVersion": 1779713764,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
