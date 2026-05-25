@@ -2549,8 +2549,8 @@
       "venue": "津昌体育场",
       "round": "第五轮 · B组",
       "status": "finished",
-      "homeScore": 2,
-      "awayScore": 1,
+      "homeScore": 1,
+      "awayScore": 2,
       "mvp": "",
       "notes": "",
       "events": []
@@ -2722,7 +2722,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779702981,
+  "dataVersion": 1779703043,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
