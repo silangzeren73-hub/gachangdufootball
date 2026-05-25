@@ -2593,8 +2593,8 @@
       "datetime": "2026-05-25T17:30",
       "venue": "津昌体育场",
       "round": "第五轮 · A组",
-      "status": "scheduled",
-      "homeScore": 0,
+      "status": "finished",
+      "homeScore": 1,
       "awayScore": 0,
       "mvp": "",
       "notes": "",
@@ -2722,7 +2722,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779704604,
+  "dataVersion": 1779712250,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
