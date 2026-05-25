@@ -1744,13 +1744,47 @@ function buildStandings(sport, teams) {
     });
   });
 
-  // 规程二十四(二)：积分 → 净胜球 → 总进球 → 红黄牌少者优先（红×3 + 黄×1 加权）
-  rows.sort((x, y) =>
-    y.points - x.points ||
+  // 规程二十四(二)：① 相互交锋胜者前 → ② 净胜球 → ③ 总进球 → ④ 红黄牌少者前 → ⑤ 抽签
+  // ① 多队同分时按 FIFA mini-league 规则：只看这些队之间的成绩 → mini-积分 → mini-净胜球 → mini-总进球
+  const finishedMatches = state.matches.filter(m => (m.status === 'finished' || m.status === 'forfeit') && m.sport === sport);
+  const cmpFallback = (x, y) =>
     (y.gf - y.ga) - (x.gf - x.ga) ||
     y.gf - x.gf ||
-    (x.yellow + x.red * 3) - (y.yellow + y.red * 3)
-  );
+    (x.yellow + x.red * 3) - (y.yellow + y.red * 3);
+  const tiebreakH2H = (group) => {
+    if (group.length <= 1) return group;
+    const ids = new Set(group.map(r => r.team.id));
+    const mini = {};
+    group.forEach(r => mini[r.team.id] = { points: 0, gf: 0, ga: 0 });
+    finishedMatches.forEach(m => {
+      if (!ids.has(m.homeId) || !ids.has(m.awayId)) return;
+      const hs = m.homeScore || 0, as = m.awayScore || 0;
+      mini[m.homeId].gf += hs; mini[m.homeId].ga += as;
+      mini[m.awayId].gf += as; mini[m.awayId].ga += hs;
+      if (hs > as) mini[m.homeId].points += SPORTS[sport].win;
+      else if (hs < as) mini[m.awayId].points += SPORTS[sport].win;
+      else { mini[m.homeId].points += SPORTS[sport].draw; mini[m.awayId].points += SPORTS[sport].draw; }
+    });
+    return group.slice().sort((x, y) => {
+      const mx = mini[x.team.id], my = mini[y.team.id];
+      return (my.points - mx.points)
+          || ((my.gf - my.ga) - (mx.gf - mx.ga))
+          || (my.gf - mx.gf)
+          || cmpFallback(x, y);
+    });
+  };
+  rows.sort((x, y) => y.points - x.points);
+  const sorted = [];
+  let i0 = 0;
+  while (i0 < rows.length) {
+    let j0 = i0;
+    while (j0 < rows.length && rows[j0].points === rows[i0].points) j0++;
+    if (j0 - i0 === 1) sorted.push(rows[i0]);
+    else sorted.push(...tiebreakH2H(rows.slice(i0, j0)));
+    i0 = j0;
+  }
+  rows.length = 0;
+  rows.push(...sorted);
 
   const isBasket = sport === 'basketball';
   const table = el('table', { class: 'standings-table' },
