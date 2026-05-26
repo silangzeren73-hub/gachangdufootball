@@ -2614,7 +2614,20 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "66",
+          "playerName": "扎西多吉"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "21",
+          "playerName": "嘎松罗追"
+        }
+      ]
     },
     {
       "id": "m-027",
@@ -2629,7 +2642,62 @@
       "awayScore": 4,
       "mvp": "",
       "notes": "常规时间战平，点球大战 5:4，芒康晋级半决赛",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "1",
+          "playerName": "鲁仲贤"
+        },
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "23",
+          "playerName": "扎西旺堆"
+        },
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "5",
+          "playerName": "洛松扎堆"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "9",
+          "playerName": "白玛罗布"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "8",
+          "playerName": "白玛平措"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "7",
+          "playerName": "帕巴同美"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "10",
+          "playerName": "普扎顿珠"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "15",
+          "playerName": "白玛曲扎"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "45",
+          "playerName": "洛松巴邓"
+        }
+      ]
     },
     {
       "id": "m-028",
@@ -2644,7 +2712,20 @@
       "awayScore": 1,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "15",
+          "playerName": "元丁江措"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "11",
+          "playerName": "次多旦"
+        }
+      ]
     },
     {
       "id": "m-029",
@@ -2659,7 +2740,26 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "昌都市应急系统足球队 3:0 完胜教育队，晋级半决赛对阵芒康",
-      "events": []
+      "events": [
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "1",
+          "playerName": "次成顿珠"
+        },
+        {
+          "type": "yellow",
+          "team": "home",
+          "playerNumber": "18",
+          "playerName": "贡布多吉"
+        },
+        {
+          "type": "yellow",
+          "team": "away",
+          "playerNumber": "47",
+          "playerName": "曲加"
+        }
+      ]
     },
     {
       "id": "m-030",
@@ -2689,7 +2789,7 @@
       "homeScore": 0,
       "awayScore": 0,
       "mvp": "",
-      "notes": "",
+      "notes": "芒康 #5 洛松扎堆 累计 2 黄停赛",
       "events": [],
       "poster": "posters/sf2-2026-05-27.png"
     },
@@ -2725,8 +2825,8 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779807564,
-  "updatedAt": "2026-05-26 22:58",
+  "dataVersion": 1779839310,
+  "updatedAt": "2026-05-27 07:50",
   "sponsors": [
     {
       "id": "aruobaba",
