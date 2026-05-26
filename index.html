@@ -11,7 +11,15 @@
   <title>西藏自治区 昌都市 足球选拔赛</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tibetan/index.css" />
-  <link rel="stylesheet" href="style.css?v=20260526a" />
+  <script>
+    // 自动版本号：每次访问都给 style.css / script.js 加上当前时间戳，
+    // 彻底避免浏览器（特别是微信内置 / iOS Safari）缓存死锁
+    (function(){
+      var v = '?v=' + Date.now();
+      document.write('<link rel="stylesheet" href="style.css' + v + '">');
+      window.__assetVer = v;
+    })();
+  </script>
   <script src="libs/html2canvas.min.js" defer></script>
   <script src="libs/qrcode-generator.js" defer></script>
 </head>
@@ -72,6 +80,6 @@
   <div class="toast" id="toast" hidden></div>
   <input type="file" id="importFile" accept="application/json" hidden />
 
-  <script src="script.js?v=20260526a"></script>
+  <script>document.write('<script src="script.js' + (window.__assetVer || ('?v=' + Date.now())) + '"><\/script>');</script>
 </body>
 </html>
