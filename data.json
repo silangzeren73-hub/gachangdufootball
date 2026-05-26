@@ -2654,8 +2654,8 @@
       "datetime": "2026-05-26T17:30",
       "venue": "津昌体育馆",
       "round": "八强 · D1 vs B2",
-      "status": "scheduled",
-      "homeScore": 0,
+      "status": "finished",
+      "homeScore": 3,
       "awayScore": 0,
       "mvp": "",
       "notes": "",
@@ -2680,7 +2680,7 @@
       "id": "m-031",
       "sport": "football",
       "homeId": "t-mkx",
-      "awayId": "t-tba",
+      "awayId": "t-syj",
       "datetime": "2026-05-27T14:30",
       "venue": "津昌体育场",
       "round": "半决赛 · 27胜 vs 29胜",
@@ -2723,7 +2723,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779789297,
+  "dataVersion": 1779796676,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
