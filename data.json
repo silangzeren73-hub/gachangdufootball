@@ -2624,11 +2624,11 @@
       "datetime": "2026-05-26T12:30",
       "venue": "津昌体育馆",
       "round": "八强 · B1 vs D2",
-      "status": "scheduled",
-      "homeScore": 0,
-      "awayScore": 0,
+      "status": "finished",
+      "homeScore": 5,
+      "awayScore": 4,
       "mvp": "",
-      "notes": "",
+      "notes": "常规时间战平，点球大战 5:4，芒康晋级半决赛",
       "events": []
     },
     {
@@ -2664,7 +2664,7 @@
     {
       "id": "m-030",
       "sport": "football",
-      "homeId": "t-tba",
+      "homeId": "t-krq",
       "awayId": "t-tba",
       "datetime": "2026-05-27T12:30",
       "venue": "津昌体育场",
@@ -2679,7 +2679,7 @@
     {
       "id": "m-031",
       "sport": "football",
-      "homeId": "t-tba",
+      "homeId": "t-mkx",
       "awayId": "t-tba",
       "datetime": "2026-05-27T14:30",
       "venue": "津昌体育场",
@@ -2723,7 +2723,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779773401,
+  "dataVersion": 1779778940,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
