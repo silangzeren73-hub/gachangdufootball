@@ -2609,9 +2609,9 @@
       "datetime": "2026-05-26T10:00",
       "venue": "津昌体育馆",
       "round": "八强 · A1 vs C2",
-      "status": "scheduled",
-      "homeScore": 0,
-      "awayScore": 0,
+      "status": "finished",
+      "homeScore": 2,
+      "awayScore": 1,
       "mvp": "",
       "notes": "",
       "events": []
@@ -2723,7 +2723,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779717394,
+  "dataVersion": 1779773401,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
