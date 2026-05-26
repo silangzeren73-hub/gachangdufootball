@@ -2639,9 +2639,9 @@
       "datetime": "2026-05-26T15:00",
       "venue": "津昌体育馆",
       "round": "八强 · C1 vs A2",
-      "status": "scheduled",
-      "homeScore": 0,
-      "awayScore": 0,
+      "status": "finished",
+      "homeScore": 4,
+      "awayScore": 1,
       "mvp": "",
       "notes": "",
       "events": []
@@ -2665,7 +2665,7 @@
       "id": "m-030",
       "sport": "football",
       "homeId": "t-krq",
-      "awayId": "t-tba",
+      "awayId": "t-gjx",
       "datetime": "2026-05-27T12:30",
       "venue": "津昌体育场",
       "round": "半决赛 · 26胜 vs 28胜",
@@ -2723,7 +2723,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779778940,
+  "dataVersion": 1779789297,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
