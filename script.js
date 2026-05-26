@@ -31,8 +31,33 @@ function renderAdminBadge() {
   const badge = document.createElement('div');
   badge.id = 'adminBadge';
   badge.className = 'admin-badge';
-  badge.innerHTML = '✏️ 管理员模式 · <a href="?admin=0">退出</a>';
+  badge.innerHTML = '✏️ 管理员模式 · <a href="#" id="adminForceRefresh">🔄 强刷</a> · <a href="?admin=0">退出</a>';
   document.body.appendChild(badge);
+  const refreshLink = badge.querySelector('#adminForceRefresh');
+  if (refreshLink) refreshLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    forceRefreshData();
+  });
+}
+async function forceRefreshData() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (_) {}
+  try {
+    if (window.caches && caches.keys) {
+      const names = await caches.keys();
+      await Promise.all(names.map(n => caches.delete(n)));
+    }
+  } catch (_) {}
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  } catch (_) {}
+  const url = new URL(location.href);
+  url.searchParams.set('_v', Date.now().toString());
+  location.replace(url.toString());
 }
 
 const SPORTS = {
