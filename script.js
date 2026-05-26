@@ -1073,6 +1073,41 @@ renderers.bracket = function() {
   })();
   panel.appendChild(el('div', { class: 'bracket-summary' }, summary));
 
+  // 半决赛 / 决赛预告海报（match.poster 字段存在且阶段未完成）
+  const posterPreviewMatches = state.matches.filter(m =>
+    m.poster && m.status !== 'finished' && /^(半决赛|3-4名|冠亚军)/.test(m.round || '')
+  );
+  if (posterPreviewMatches.length) {
+    const sfPreview = el('div', { class: 'bracket-poster-preview card' },
+      el('div', { class: 'bracket-poster-preview-title' }, '📣 阶段预告海报'),
+      el('div', { class: 'bracket-poster-preview-sub' }, '点击图片可放大保存 · 长按可分享朋友圈'),
+      el('div', { class: 'bracket-poster-row' },
+        ...posterPreviewMatches.map(m => {
+          const home = getTeam(m.homeId);
+          const away = getTeam(m.awayId);
+          const cap = (home && home.name ? home.shortName || home.name : '?')
+            + ' VS ' + (away && away.name ? away.shortName || away.name : '?');
+          const dt = m.datetime ? new Date(m.datetime) : null;
+          const when = dt ? `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}` : '';
+          return el('a', {
+            class: 'bracket-poster-thumb',
+            href: m.poster,
+            target: '_blank',
+            rel: 'noopener',
+            download: `${m.id}-${cap}.png`,
+          },
+            el('img', { src: m.poster, alt: cap, loading: 'lazy', referrerpolicy: 'no-referrer' }),
+            el('div', { class: 'bracket-poster-cap' },
+              el('span', { class: 'bracket-poster-cap-when' }, when),
+              el('span', { class: 'bracket-poster-cap-name' }, cap),
+            ),
+          );
+        }),
+      ),
+    );
+    panel.appendChild(sfPreview);
+  }
+
   // ===== 树状图（diamond 布局）=====
   // 上半区: QF1 + QF3 → SF1
   // 下半区: QF2 + QF4 → SF2

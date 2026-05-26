@@ -2674,7 +2674,8 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [],
+      "poster": "posters/sf1-2026-05-27.png"
     },
     {
       "id": "m-031",
@@ -2689,7 +2690,8 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [],
+      "poster": "posters/sf2-2026-05-27.png"
     },
     {
       "id": "m-032",
@@ -2723,7 +2725,7 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779796676,
+  "dataVersion": 1779796995,
   "updatedAt": "2026-05-25 00:30",
   "sponsors": [
     {
