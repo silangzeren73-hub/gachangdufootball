@@ -2806,7 +2806,8 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [],
+      "poster": "posters/final-day-2026-05-28.png"
     },
     {
       "id": "m-033",
@@ -2821,11 +2822,12 @@
       "awayScore": 0,
       "mvp": "",
       "notes": "",
-      "events": []
+      "events": [],
+      "poster": "posters/final-day-2026-05-28.png"
     }
   ],
   "analyses": [],
-  "dataVersion": 1779878001,
+  "dataVersion": 1779882742,
   "updatedAt": "2026-05-27 18:30",
   "sponsors": [
     {
