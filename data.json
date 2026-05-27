@@ -2769,8 +2769,8 @@
       "datetime": "2026-05-27T14:00",
       "venue": "津昌体育馆",
       "round": "半决赛 · 26胜 vs 28胜",
-      "status": "scheduled",
-      "homeScore": 0,
+      "status": "finished",
+      "homeScore": 2,
       "awayScore": 0,
       "mvp": "",
       "notes": "",
@@ -2796,7 +2796,7 @@
     {
       "id": "m-032",
       "sport": "football",
-      "homeId": "t-tba",
+      "homeId": "t-gjx",
       "awayId": "t-tba",
       "datetime": "2026-05-28T12:30",
       "venue": "津昌体育场",
@@ -2811,7 +2811,7 @@
     {
       "id": "m-033",
       "sport": "football",
-      "homeId": "t-tba",
+      "homeId": "t-krq",
       "awayId": "t-tba",
       "datetime": "2026-05-28T14:30",
       "venue": "津昌体育场",
@@ -2825,8 +2825,8 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779839310,
-  "updatedAt": "2026-05-27 07:50",
+  "dataVersion": 1779874818,
+  "updatedAt": "2026-05-27 16:00",
   "sponsors": [
     {
       "id": "aruobaba",
