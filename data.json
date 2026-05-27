@@ -2798,8 +2798,8 @@
       "sport": "football",
       "homeId": "t-gjx",
       "awayId": "t-mkx",
-      "datetime": "2026-05-28T12:30",
-      "venue": "津昌体育场",
+      "datetime": "2026-05-28T14:00",
+      "venue": "津昌体育馆",
       "round": "3-4名 · 30负 vs 31负",
       "status": "scheduled",
       "homeScore": 0,
@@ -2814,8 +2814,8 @@
       "sport": "football",
       "homeId": "t-krq",
       "awayId": "t-syj",
-      "datetime": "2026-05-28T14:30",
-      "venue": "津昌体育场",
+      "datetime": "2026-05-28T16:30",
+      "venue": "津昌体育馆",
       "round": "冠亚军 · 30胜 vs 31胜",
       "status": "scheduled",
       "homeScore": 0,
@@ -2827,8 +2827,8 @@
     }
   ],
   "analyses": [],
-  "dataVersion": 1779882742,
-  "updatedAt": "2026-05-27 18:30",
+  "dataVersion": 1779882893,
+  "updatedAt": "2026-05-27 19:00",
   "sponsors": [
     {
       "id": "aruobaba",
